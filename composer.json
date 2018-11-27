@@ -1,0 +1,27 @@
+{
+    "name": "blockchainofthings/catenis-api-client",
+    "description": "Catenis Enterprise API client library for PHP",
+    "version": "1.0.0",
+    "type": "library",
+    "require": {
+        "php": ">=5.6.0",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "~6.0",
+        "wyrihaximus/react-guzzle-psr7": "^2.1"
+    },
+    "require-dev": {
+        "react/event-loop": "^1.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cláudio de Castro",
+            "email": "claudio@blockchainofthings.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Catenis\\": "src/"
+        }
+    }
+}
