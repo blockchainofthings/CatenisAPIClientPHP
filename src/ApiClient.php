@@ -751,7 +751,7 @@ class ApiClient {
      *                                             intended to be retrieve: 'inbound'|'outbound'|'any'. Note that this option only applies to
      *                                             sent messages (action = 'send'). 'inbound' indicates messages sent to the device that issued
      *                                             the request, while 'outbound' indicates messages sent from the device that issued the request
-     *      'fromDevices' => [array]              (optional) - A list (simple array) of devices from which the messages intended to be retrieved has been sent.
+     *      'fromDevices' => [array]              (optional) - A list (simple array) of devices from which the messages intended to be retrieved had been sent.
      *                                             Note that this option only applies to messages sent to the device that issued the request (action = 'send' and direction = 'inbound')
      *          [n] => [array]                     Each item of the list is a map (associative array) containing the following keys:
      *              'id' => [string]                ID of the device. Should be Catenis device ID unless isProdUniqueId is true
@@ -846,7 +846,7 @@ class ApiClient {
      *                                             intended to be retrieve: 'inbound'|'outbound'|'any'. Note that this option only applies to
      *                                             sent messages (action = 'send'). 'inbound' indicates messages sent to the device that issued
      *                                             the request, while 'outbound' indicates messages sent from the device that issued the request
-     *      'fromDevices' => [array]              (optional) - A list (simple array) of devices from which the messages intended to be retrieved has been sent.
+     *      'fromDevices' => [array]              (optional) - A list (simple array) of devices from which the messages intended to be retrieved had been sent.
      *                                             Note that this option only applies to messages sent to the device that issued the request (action = 'send' and direction = 'inbound')
      *          [n] => [array]                     Each item of the list is a map (associative array) containing the following keys:
      *              'id' => [string]                ID of the device. Should be Catenis device ID unless isProdUniqueId is true
