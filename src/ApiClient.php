@@ -17,8 +17,10 @@ use GuzzleHttp\Promise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
+use GuzzleHttp\Psr7\UriNormalizer;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use WyriHaximus\React\GuzzlePsr7\HttpClientAdapter;
 use Catenis\Internal\ApiVersion;
 use Catenis\Exception\ApiClientException;
@@ -455,6 +457,30 @@ class ApiClient {
         return $promise;
     }
 
+    /**
+     * Assembles the complete URL for an API endpoint
+     * @param string $methodPath
+     * @param array|null $urlParams
+     * @param array|null $queryParams
+     * @return UriInterface
+     */
+    private function assembleMethodEndPointUrl($methodPath, array $urlParams = null, array $queryParams = null) {
+        $methodEndPointUrl = new Uri(self::formatMethodPath($methodPath, $urlParams));
+
+        if ($queryParams !== null) {
+            foreach ($queryParams as $key => $value) {
+                $methodEndPointUrl = Uri::withQueryValue($methodEndPointUrl, $key, $value);
+            }
+        }
+
+        // Make sure that duplicate slashes that might occur in the URL (due to empty URL parameters)
+        //  are reduced to a single slash so the URL used for signing is not different from the
+        //  actual URL of the sent request
+        $methodEndPointUrl = UriNormalizer::normalize(UriResolver::resolve($this->rootApiEndPoint, $methodEndPointUrl), UriNormalizer::REMOVE_DUPLICATE_SLASHES);
+
+        return $methodEndPointUrl;
+    }
+
     /** @noinspection PhpDocMissingThrowsInspection, PhpDocRedundantThrowsInspection */
     /**
      * Sends a GET request to a given API endpoint
@@ -470,17 +496,7 @@ class ApiClient {
      */
     private function sendGetRequest($methodPath, array $urlParams = null, array $queryParams = null) {
         // Prepare request
-        $methodEndPoint = new Uri(self::formatMethodPath($methodPath, $urlParams));
-
-        if ($queryParams !== null) {
-            foreach ($queryParams as $key => $value) {
-                $methodEndPoint = Uri::withQueryValue($methodEndPoint, $key, $value);
-            }
-        }
-
-        $methodEndPoint = UriResolver::resolve($this->rootApiEndPoint, $methodEndPoint);
-
-        $request = new Request('GET', $methodEndPoint);
+        $request = new Request('GET', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams));
 
         // Sign and send the request
         return $this->sendRequest($request);
@@ -497,17 +513,7 @@ class ApiClient {
      */
     private function sendGetRequestAsync($methodPath, array $urlParams = null, array $queryParams = null) {
         // Prepare request
-        $methodEndPoint = new Uri(self::formatMethodPath($methodPath, $urlParams));
-
-        if ($queryParams !== null) {
-            foreach ($queryParams as $key => $value) {
-                $methodEndPoint = Uri::withQueryValue($methodEndPoint, $key, $value);
-            }
-        }
-
-        $methodEndPoint = UriResolver::resolve($this->rootApiEndPoint, $methodEndPoint);
-
-        $request = new Request('GET', $methodEndPoint);
+        $request = new Request('GET', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams));
 
         // Sign and send the request asynchronously
         return $this->sendRequestAsync($request);
@@ -529,17 +535,8 @@ class ApiClient {
      */
     private function sendPostRequest($methodPath, stdClass $jsonData, array $urlParams = null, array $queryParams = null) {
         // Prepare request
-        $methodEndPoint = new Uri(self::formatMethodPath($methodPath, $urlParams));
-
-        if ($queryParams !== null) {
-            foreach ($queryParams as $key => $value) {
-                $methodEndPoint = Uri::withQueryValue($methodEndPoint, $key, $value);
-            }
-        }
-
-        $methodEndPoint = UriResolver::resolve($this->rootApiEndPoint, $methodEndPoint);
-
-        $request = new Request('POST', $methodEndPoint, ['Content-Type' => 'application/json'], json_encode($jsonData));
+        $request = new Request('POST', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams),
+                ['Content-Type' => 'application/json'], json_encode($jsonData));
 
         // Sign and send the request
         return $this->sendRequest($request);
@@ -556,18 +553,8 @@ class ApiClient {
      * @return Promise\PromiseInterface - A promise representing the asynchronous processing
      */
     private function sendPostRequestAsync($methodPath, stdClass $jsonData, array $urlParams = null, array $queryParams = null) {
-        // Prepare request
-        $methodEndPoint = new Uri(self::formatMethodPath($methodPath, $urlParams));
-
-        if ($queryParams !== null) {
-            foreach ($queryParams as $key => $value) {
-                $methodEndPoint = Uri::withQueryValue($methodEndPoint, $key, $value);
-            }
-        }
-
-        $methodEndPoint = UriResolver::resolve($this->rootApiEndPoint, $methodEndPoint);
-
-        $request = new Request('POST', $methodEndPoint, ['Content-Type' => 'application/json'], json_encode($jsonData));
+        $request = new Request('POST', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams),
+                ['Content-Type' => 'application/json'], json_encode($jsonData));
 
         // Sign and send the request
         return $this->sendRequestAsync($request);
