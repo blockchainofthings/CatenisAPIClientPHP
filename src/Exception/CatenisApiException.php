@@ -7,14 +7,20 @@ namespace Catenis\Exception;
 
 
 /**
- * Class ApiResponseException - Exception returned when an error is returned by the Catenis API endpoint
+ * Class CatenisApiException - Exception returned when an error is returned by the Catenis API endpoint
  * @package Catenis
  */
-class ApiResponseException extends ApiClientException {
+class CatenisApiException extends CatenisException {
     private $httpStatusMessage;
     private $httpStatusCode;
     private $ctnErrorMessage;
 
+    /**
+     * CatenisApiException constructor.
+     * @param string $httpStatusMessage
+     * @param integer $httpStatusCode
+     * @param string|null $ctnErrorMessage
+     */
     public function __construct($httpStatusMessage, $httpStatusCode, $ctnErrorMessage = null) {
         $this->httpStatusMessage = $httpStatusMessage;
         $this->httpStatusCode = $httpStatusCode;

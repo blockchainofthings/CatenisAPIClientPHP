@@ -23,9 +23,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use WyriHaximus\React\GuzzlePsr7\HttpClientAdapter;
 use Catenis\Internal\ApiVersion;
-use Catenis\Exception\ApiClientException;
-use Catenis\Exception\ApiRequestException;
-use Catenis\Exception\ApiResponseException;
+use Catenis\Exception\CatenisException;
+use Catenis\Exception\CatenisClientException;
+use Catenis\Exception\CatenisApiException;
 
 
 class ApiClient {
@@ -86,8 +86,8 @@ class ApiClient {
      * Process response from HTTP request
      * @param ResponseInterface $response - The HTTP response
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
-     * @throws ApiClientException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     private static function processResponse(ResponseInterface $response) {
         // Process response
@@ -107,7 +107,7 @@ class ApiClient {
             }
 
             // Throw API response exception
-            throw new ApiResponseException($response->getReasonPhrase(), $statusCode, $ctnErrorMessage);
+            throw new CatenisApiException($response->getReasonPhrase(), $statusCode, $ctnErrorMessage);
         }
 
         // Validate and return data returned as response
@@ -121,7 +121,7 @@ class ApiClient {
         }
 
         // Invalid data returned. Throw exception
-        throw new ApiClientException("Unexpected response returned by API endpoint: $body");
+        throw new CatenisClientException("Unexpected response returned by API endpoint: $body");
     }
 
     /**
@@ -395,34 +395,28 @@ class ApiClient {
      * Sends a request to an API endpoint
      * @param RequestInterface $request - The request to send
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     private function sendRequest(RequestInterface $request) {
         try {
             // Sign and send request
             $this->signRequest($request);
 
-            try {
-                /** @noinspection PhpUnhandledExceptionInspection */
-                $response = $this->httpClient->send($request);
-            }
-            catch (Exception $ex) {
-                // Exception while sending request. Rethrow local exception
-                throw new ApiRequestException($ex);
-            }
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $response = $this->httpClient->send($request);
 
             // Process response
             return self::processResponse($response);
         }
-        catch (ApiClientException $apiEx) {
-            // Just rethrow exception
+        catch (CatenisException $apiEx) {
+            // Just rethrows exception
+            /** @noinspection PhpUnhandledExceptionInspection */
             throw $apiEx;
         }
         catch (Exception $ex) {
-            // General exception processing request. Rethrow local exception
-            throw new ApiClientException('Error while sending GET request API endpoint', 0, $ex);
+            // Exception processing request. Throws local exception
+            throw new CatenisClientException(null, $ex);
         }
     }
 
@@ -444,13 +438,13 @@ class ApiClient {
                     },
                     function (Exception $ex) {
                         // Exception while sending request. Rethrow local exception
-                        throw new ApiRequestException($ex);
+                        throw new CatenisClientException(null, $ex);
                     }
                 );
             }
             catch (Exception $ex) {
-                // General exception processing request. Rethrow local exception
-                throw new ApiClientException('Error while sending GET request API endpoint', 0, $ex);
+                // Exception processing request. Throws local exception
+                throw new CatenisClientException(null, $ex);
             }
         });
 
@@ -481,7 +475,6 @@ class ApiClient {
         return $methodEndPointUrl;
     }
 
-    /** @noinspection PhpDocMissingThrowsInspection, PhpDocRedundantThrowsInspection */
     /**
      * Sends a GET request to a given API endpoint
      * @param $methodPath - The (relative) path to the API endpoint
@@ -490,9 +483,8 @@ class ApiClient {
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     private function sendGetRequest($methodPath, array $urlParams = null, array $queryParams = null) {
         // Prepare request
@@ -519,7 +511,6 @@ class ApiClient {
         return $this->sendRequestAsync($request);
     }
 
-    /** @noinspection PhpDocMissingThrowsInspection, PhpDocRedundantThrowsInspection */
     /**
      * Sends a GET request to a given API endpoint
      * @param $methodPath - The (relative) path to the API endpoint
@@ -529,9 +520,8 @@ class ApiClient {
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     private function sendPostRequest($methodPath, stdClass $jsonData, array $urlParams = null, array $queryParams = null) {
         // Prepare request
@@ -689,9 +679,8 @@ class ApiClient {
      *      'encrypt' => [boolean],  (optional, default: true) Indicates whether message should be encrypted before storing
      *      'storage' => [string]    (optional, default: 'auto') One of the following values identifying where the message should be stored: 'auto'|'embedded'|'external'
      * @return stdClass - An object representing the JSON formatted data returned by the Log Message Catenis API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     function logMessage($message, array $options = null) {
         return $this->sendPostRequest(...self::logMessageRequestParams($message, $options));
@@ -709,9 +698,8 @@ class ApiClient {
      *      'encrypt' => [boolean],          (optional, default: true) Indicates whether message should be encrypted before storing
      *      'storage' => [string]            (optional, default: 'auto') One of the following values identifying where the message should be stored: 'auto'|'embedded'|'external'
      * @return stdClass - An object representing the JSON formatted data returned by the Log Message Catenis API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     function sendMessage(array $targetDevice, $message, array $options = null) {
         return $this->sendPostRequest(...self::sendMessageRequestParams($targetDevice, $message, $options));
@@ -722,9 +710,8 @@ class ApiClient {
      * @param string $messageId - The ID of the message to read
      * @param string|null $encoding - (default: 'utf8') One of the following values identifying the encoding that should be used for the returned message: 'utf8'|'base64'|'hex'
      * @return stdClass - An object representing the JSON formatted data returned by the Read Message Catenis API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     function readMessage($messageId, $encoding = null) {
         return $this->sendGetRequest(...self::readMessageRequestParams($messageId, $encoding));
@@ -734,9 +721,8 @@ class ApiClient {
      * Retrieve message container
      * @param string $messageId - The ID of message to retrieve container info
      * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Message Container Catenis API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     function retrieveMessageContainer($messageId) {
         return $this->sendGetRequest(...self::retrieveMessageContainerRequestParams($messageId));
@@ -778,9 +764,8 @@ class ApiClient {
      *                                             the device that issued the request (action = 'send' and direction = 'inbound')
      *                                             Note: if a string is passed, assumes that it is an ISO8601 formatter date/time
      * @return stdClass - An object representing the JSON formatted data returned by the List Messages Catenis API endpoint
-     * @throws ApiClientException
-     * @throws ApiRequestException
-     * @throws ApiResponseException
+     * @throws CatenisClientException
+     * @throws CatenisApiException
      */
     function listMessages(array $options = null) {
         return $this->sendGetRequest(...self::listMessagesRequestParams($options));
@@ -865,13 +850,13 @@ class ApiClient {
      *                                             by the device that issued the request (action = 'log'); sent, in case of messages sent from the current
      *                                             device (action = 'send' direction = 'outbound'); or received, in case of messages sent to
      *                                             the device that issued the request (action = 'send' and direction = 'inbound').
-     *                                             Note: if a string is passed, assumes that it is an ISO8601 formatter date/time
+     *                                             Note: if a string is passed, it should be an ISO8601 formatter date/time
      *      'endDate' => [string|DateTime]        (optional) - Date and time specifying the upper boundary of the time frame within
      *                                             which the messages intended to be retrieved has been: logged, in case of messages logged
      *                                             by the device that issued the request (action = 'log'); sent, in case of messages sent from the current
      *                                             device (action = 'send' direction = 'outbound'); or received, in case of messages sent to
      *                                             the device that issued the request (action = 'send' and direction = 'inbound')
-     *                                             Note: if a string is passed, assumes that it is an ISO8601 formatter date/time
+     *                                             Note: if a string is passed, it should be an ISO8601 formatter date/time
      * @return Promise\PromiseInterface - A promise representing the asynchronous processing
      */
     function listMessagesAsync(array $options = null) {

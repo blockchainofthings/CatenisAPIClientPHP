@@ -9,12 +9,12 @@ use Exception;
 
 
 /**
- * Class ApiClientException - Base exception returned by Catenis API client
+ * Class CatenisException - Base exception returned by Catenis API client
  * @package Catenis
  */
-class ApiClientException extends Exception {
+class CatenisException extends Exception {
     /**
-     * ApiClientException constructor.
+     * CatenisException constructor.
      * @param string $message
      * @param int $code
      * @param Exception|null $previous
