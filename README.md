@@ -18,12 +18,9 @@ Alternatively, the dependency can be added directly to your `composer.json` file
 
 ```json
 {
-    ...
     "require": {
-        ...
         "blockchainofthings/catenis-api-client:^1.0"
     }
-    ...
 }
 ```
 
@@ -151,7 +148,7 @@ try {
         echo 'Message sent from: ' . $data->from . PHP_EOL;
     }
 
-    echo 'Message read: ' . $data->message . PHP_EOL;
+    echo 'Read message: ' . $data->message . PHP_EOL;
 }
 catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
@@ -608,7 +605,7 @@ as an argument, in case of asynchronous methods.
 
 The following exceptions can take place when calling API methods:
 
-- **CatenisClientException** - Indicates that an error took place while trying to call one of the Catenis API endpoints.
+- **CatenisClientException** - Indicates that an error took place while trying to call the Catenis API endpoint.
 - **CatenisApiException** - Indicates that an error was returned by the Catenis API endpoint.
 
 > **Note**: these two exceptions derive from a single exception, namely **CatenisException**.
