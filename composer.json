@@ -7,7 +7,9 @@
         "php": ">=5.6.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "~6.0",
-        "wyrihaximus/react-guzzle-psr7": "^2.1"
+        "wyrihaximus/react-guzzle-psr7": "^2.1",
+        "evenement/evenement": "^2.1",
+        "ratchet/pawl": "^0.3.2"
     },
     "require-dev": {
         "react/event-loop": "^1.0"

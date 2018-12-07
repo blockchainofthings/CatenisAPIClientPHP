@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by claudio on 2018-11-24
+ * Created by claudio on 2018-12-06
  */
 
 namespace Catenis\Exception;
@@ -9,12 +9,13 @@ use Exception;
 
 
 /**
- * Class CatenisException - Base exception returned by Catenis API client
- * @package Catenis
+ * Class WsNotificationException - Base exception returned by WebSocket notification channel services
+ *                                  of the Catenis API
+ * @package Catenis\Exception
  */
-class CatenisException extends Exception {
+class WsNotificationException extends CatenisException {
     /**
-     * CatenisException constructor.
+     * WsNotificationException constructor.
      * @param string $message
      * @param int $code
      * @param Exception|null $previous
