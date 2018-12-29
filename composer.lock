@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7573eb323e6b4ee27f127c786ca9e1c5",
+    "content-hash": "ffe59b277576e155132c5ab23a67f2e8",
     "packages": [
         {
             "name": "clue/buzz-react",
@@ -1120,16 +1120,16 @@
         },
         {
             "name": "wyrihaximus/react-guzzle-psr7",
-            "version": "2.1.0",
+            "version": "2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/react-guzzle-psr7.git",
-                "reference": "188d97a424630da5597f6275f0e29449dd4c868d"
+                "reference": "371801583ca9845cc02329f7c28ef8acb2f4abbc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/react-guzzle-psr7/zipball/188d97a424630da5597f6275f0e29449dd4c868d",
-                "reference": "188d97a424630da5597f6275f0e29449dd4c868d",
+                "url": "https://api.github.com/repos/WyriHaximus/react-guzzle-psr7/zipball/371801583ca9845cc02329f7c28ef8acb2f4abbc",
+                "reference": "371801583ca9845cc02329f7c28ef8acb2f4abbc",
                 "shasum": ""
             },
             "require": {
@@ -1161,7 +1161,7 @@
                 }
             ],
             "description": "Asyncronous Guzzle (PSR7) adapter powered by react/http-client",
-            "time": "2018-07-23T20:49:56+00:00"
+            "time": "2018-12-24T23:44:20+00:00"
         },
         {
             "name": "wyrihaximus/ticking-promise",
