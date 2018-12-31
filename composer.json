@@ -3,13 +3,19 @@
     "description": "Catenis Enterprise API client library for PHP",
     "version": "1.0.1",
     "type": "library",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/claudiosdc/Pawl.git"
+        }
+    ],
     "require": {
         "php": ">=5.6.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "~6.0",
         "wyrihaximus/react-guzzle-psr7": "^2.1",
         "evenement/evenement": "^2.1",
-        "ratchet/pawl": "^0.3.2"
+        "ratchet/pawl": "dev-Fix"
     },
     "require-dev": {
         "react/event-loop": "^1.0"

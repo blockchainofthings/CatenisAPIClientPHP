@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ffe59b277576e155132c5ab23a67f2e8",
+    "content-hash": "26fe23e5bd92c30f6f5d6c158e30e50e",
     "packages": [
         {
             "name": "clue/buzz-react",
@@ -496,16 +496,16 @@
         },
         {
             "name": "ratchet/pawl",
-            "version": "v0.3.2",
+            "version": "dev-Fix",
             "source": {
                 "type": "git",
-                "url": "https://github.com/ratchetphp/Pawl.git",
-                "reference": "85ca3b4a85254cf2ac4309ef42d427820770ae31"
+                "url": "https://github.com/claudiosdc/Pawl.git",
+                "reference": "ddba9cf9cc02097ad2212ed0a17b30a6124e0bae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ratchetphp/Pawl/zipball/85ca3b4a85254cf2ac4309ef42d427820770ae31",
-                "reference": "85ca3b4a85254cf2ac4309ef42d427820770ae31",
+                "url": "https://api.github.com/repos/claudiosdc/Pawl/zipball/ddba9cf9cc02097ad2212ed0a17b30a6124e0bae",
+                "reference": "ddba9cf9cc02097ad2212ed0a17b30a6124e0bae",
                 "shasum": ""
             },
             "require": {
@@ -529,19 +529,21 @@
                     "src/functions_include.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
             "description": "Asynchronous WebSocket client",
             "keywords": [
                 "Ratchet",
+                "WebSocket",
                 "async",
                 "client",
-                "websocket",
                 "websocket client"
             ],
-            "time": "2018-05-22T21:45:08+00:00"
+            "support": {
+                "source": "https://github.com/claudiosdc/Pawl/tree/Fix"
+            },
+            "time": "2018-12-31T12:05:29+00:00"
         },
         {
             "name": "ratchet/rfc6455",
@@ -1214,7 +1216,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "ratchet/pawl": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
