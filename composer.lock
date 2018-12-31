@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "26fe23e5bd92c30f6f5d6c158e30e50e",
+    "content-hash": "1863d9620019d97434704054d4926abe",
     "packages": [
         {
             "name": "clue/buzz-react",
@@ -500,12 +500,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/claudiosdc/Pawl.git",
-                "reference": "ddba9cf9cc02097ad2212ed0a17b30a6124e0bae"
+                "reference": "00a49ef612aa62d186f16429353edd1eae6583f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/claudiosdc/Pawl/zipball/ddba9cf9cc02097ad2212ed0a17b30a6124e0bae",
-                "reference": "ddba9cf9cc02097ad2212ed0a17b30a6124e0bae",
+                "url": "https://api.github.com/repos/claudiosdc/Pawl/zipball/00a49ef612aa62d186f16429353edd1eae6583f9",
+                "reference": "00a49ef612aa62d186f16429353edd1eae6583f9",
                 "shasum": ""
             },
             "require": {
@@ -543,7 +543,7 @@
             "support": {
                 "source": "https://github.com/claudiosdc/Pawl/tree/Fix"
             },
-            "time": "2018-12-31T12:05:29+00:00"
+            "time": "2018-12-31T14:44:01+00:00"
         },
         {
             "name": "ratchet/rfc6455",
