@@ -144,11 +144,11 @@ try {
     $data = $ctnApiClient->readMessage($messageId, 'utf8');
 
     // Process returned data
-    if ($data->action === 'send') {
-        echo 'Message sent from: ' . $data->from . PHP_EOL;
-    }
-
     echo 'Read message: ' . $data->message . PHP_EOL;
+
+    if ($data->action === 'send') {
+        echo 'Message sent from: ' . print_r($data->from, true);
+    }
 }
 catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
@@ -186,7 +186,7 @@ try {
 
     // Process returned data
     if ($data->msgCount > 0) {
-        echo 'Returned messages: ' . $data->messages . PHP_EOL;
+        echo 'Returned messages: ' . print_r($data->messages, true);
         
         if ($data->countExceeded) {
             echo 'Warning: not all messages fulfilling search criteria have been returned!' . PHP_EOL;
@@ -265,8 +265,7 @@ try {
     $data = $ctnApiClient->retrieveAssetInfo($assetId);
 
     // Process returned data
-    echo 'Asset info:' . PHP_EOL;
-    print_r($data);
+    echo 'Asset info:' . print_r($data, true);
 }
 catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
@@ -343,7 +342,7 @@ try {
     forEach($data->issuanceEvents as $idx => $issuanceEvent) {
         echo 'Issuance event #', ($idx + 1) . ':' . PHP_EOL;
         echo '  - issued amount: ' . $issuanceEvent->amount . PHP_EOL;
-        echo '  - device to which issued amount had been assigned: ' . $issuanceEvent->holdingDevice . PHP_EOL;
+        echo '  - device to which issued amount had been assigned: ' . print_r($issuanceEvent->holdingDevice, true);
         echo '  - date of issuance: ' . $issuanceEvent->date . PHP_EOL;
     }
 
@@ -369,7 +368,7 @@ try {
     // Process returned data
     forEach($data->assetHolders as $idx => $assetHolder) {
         echo 'Asset holder #' . ($idx + 1) . ':' . PHP_EOL;
-        echo '  - device holding an amount of the asset: ' . $assetHolder->holder . PHP_EOL;
+        echo '  - device holding an amount of the asset: ' . print_r($assetHolder->holder, true);
         echo '  - amount of asset currently held by device: ' . $assetHolder->balance->total . PHP_EOL;
         echo '  - amount not yet confirmed: ' . $assetHolder->balance->unconfirmed . PHP_EOL;
     }
@@ -430,11 +429,11 @@ try {
     
     if (isset($data->device)) {
         if (isset($data->device->allow)) {
-            echo 'Devices with \'allow\' permission right: ' . implode($data->device->allow, ', ') . PHP_EOL;
+            echo 'Devices with \'allow\' permission right: ' . print_r($data->device->allow, true);
         }
         
         if (isset($data->device->deny)) {
-            echo 'Devices with \'deny\' permission right: ' . implode($data->device->deny, ', ') . PHP_EOL;
+            echo 'Devices with \'deny\' permission right: ' . print_r($data->device->deny, true);
         }
     }
 }
@@ -498,12 +497,9 @@ try {
     $data = $ctnApiClient->retrieveDeviceIdentificationInfo($deviceId, false);
     
     // Process returned data
-    echo 'Device\'s Catenis node ID info:' . PHP_EOL;
-    print_r($data->catenisNode);
-    echo 'Device\'s client ID info:' . PHP_EOL;
-    print_r($data->client);
-    echo 'Device\'s own ID info:' . PHP_EOL;
-    print_r($data->device);
+    echo 'Device\'s Catenis node ID info:' . print_r($data->catenisNode, true);
+    echo 'Device\'s client ID info:' . print_r($data->client, true);
+    echo 'Device\'s own ID info:' . print_r($data->device, true);
 }
 catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
