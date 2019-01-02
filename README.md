@@ -683,4 +683,4 @@ For further information on the Catenis Enterprise API, please reference the [Cat
 
 This Node.js module is released under the [MIT License](LICENSE). Feel free to fork, and modify!
 
-Copyright © 2018, Blockchain of Things Inc.
+Copyright © 2019, Blockchain of Things Inc.
