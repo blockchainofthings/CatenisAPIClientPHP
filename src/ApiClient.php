@@ -1063,7 +1063,7 @@ class ApiClient extends ApiPackage {
         $this->httpClient = new Client([
             'handler' => $httpClientHandler,
             RequestOptions::HEADERS => [
-                'User-Agent' => 'Catenis API client for PHP',
+                'User-Agent' => 'Catenis API PHP client',
                 'Accept' => 'application/json'
             ],
             RequestOptions::HTTP_ERRORS => false,

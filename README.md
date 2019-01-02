@@ -1,4 +1,4 @@
-# Catenis API Client for PHP
+# Catenis API PHP Client
 
 This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
 
@@ -6,7 +6,7 @@ This current release (1.0.2) targets version 0.6 of the Catenis Enterprise API.
 
 ## Installation
 
-The recommended way to install Catenis API Client for PHP is using [Composer](https://getcomposer.org).
+The recommended way to install the Catenis API PHP client is using [Composer](https://getcomposer.org).
 
 To add Catenis API Client as a dependency to you project, issue the following command:
 
@@ -524,7 +524,7 @@ catch (\Catenis\Exception\CatenisException $ex) {
 
 ## Notifications
 
-The Catenis API Client for PHP makes it easy for receiving notifications from the Catenis system by embedding a
+The Catenis API PHP client makes it easy for receiving notifications from the Catenis system by embedding a
 WebSocket client. All the end user needs to do is open a WebSocket notification channel for the desired Catenis
 notification event, and monitor the activity on that channel.
 
