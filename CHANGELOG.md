@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3] - 2019-01-02
+
+### Changes
+- Changed the wording of the library title.
+- Made adjustments and corrections to the sample code shown in the README file.
+
 ## [1.0.2] - 2018-12-31
 
 ### Fixes
