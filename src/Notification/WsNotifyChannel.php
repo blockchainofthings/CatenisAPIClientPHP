@@ -17,8 +17,8 @@ use Catenis\Exception\WsNotifyChannelAlreadyOpenException;
 use Catenis\Exception\OpenWsConnException;
 use Catenis\Internal\ApiPackage;
 
-
-class WsNotifyChannel extends ApiPackage implements EventEmitterInterface {
+class WsNotifyChannel extends ApiPackage implements EventEmitterInterface
+{
     use EventEmitterTrait;
 
     private $ctnApiClient;
@@ -30,7 +30,8 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface {
      * @param ApiClient $ctnApiClient
      * @param string $eventName
      */
-    function __construct(ApiClient $ctnApiClient, $eventName) {
+    public function __construct(ApiClient $ctnApiClient, $eventName)
+    {
         $this->ctnApiClient = $ctnApiClient;
         $this->eventName = $eventName;
     }
@@ -39,7 +40,8 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface {
      * Open WebSocket notification channel
      * @return PromiseInterface
      */
-    function open() {
+    public function open()
+    {
         return Promise\task(function () {
             if (isset($this->ws)) {
                 // Notification channel already open. Throw exception
@@ -92,12 +94,11 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface {
                     $ws->send(json_encode($authMsgData));
                 }, function (Exception $ex) {
                     // Error opening WebSocket connection.
-                    //  Just rethrows exception for now
+                    //  Just re-throws exception for now
                     throw new OpenWsConnException(null, $ex);
                 });
-            }
-            catch (Exception $ex) {
-                // Just rethrows exception for now
+            } catch (Exception $ex) {
+                // Just re-throws exception for now
                 throw new OpenWsConnException(null, $ex);
             }
         });
@@ -106,7 +107,8 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface {
     /**
      * Close WebSocket notification channel
      */
-    function close() {
+    public function close()
+    {
         if (isset($this->ws)) {
             // Close the WebSocket connection
             $this->ws->close(1000);

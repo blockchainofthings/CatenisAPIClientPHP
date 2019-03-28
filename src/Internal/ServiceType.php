@@ -5,8 +5,8 @@
 
 namespace Catenis\Internal;
 
-
-abstract class ServiceType {
+abstract class ServiceType
+{
     const API = 1;
     const WS_NOTIFY = 2;
 }

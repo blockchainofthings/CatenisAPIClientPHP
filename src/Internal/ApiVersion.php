@@ -7,8 +7,8 @@ namespace Catenis\Internal;
 
 use Exception;
 
-
-class ApiVersion {
+class ApiVersion
+{
     public $major;
     public $minor;
 
@@ -19,8 +19,10 @@ class ApiVersion {
      * @param string|ApiVersion $ver
      * @return bool
      */
-    private static function isValidVersion($ver) {
-        return (gettype($ver) === 'string' && preg_match(ApiVersion::$verPattern, $ver)) || ($ver instanceOf ApiVersion);
+    private static function isValidVersion($ver)
+    {
+        return (gettype($ver) === 'string' && preg_match(ApiVersion::$verPattern, $ver))
+            || ($ver instanceof ApiVersion);
     }
 
     /**
@@ -30,11 +32,11 @@ class ApiVersion {
      * @return ApiVersion|null - Returns the encapsulated version or null if it is not valid
      * @throws Exception
      */
-    public static function checkVersion($ver, $reportError = false) {
+    public static function checkVersion($ver, $reportError = false)
+    {
         if (ApiVersion::isValidVersion($ver)) {
                 return gettype($ver) === 'string' ? new ApiVersion($ver) : $ver;
-        }
-        else if ($reportError) {
+        } elseif ($reportError) {
             throw new Exception("Invalid API version: $ver");
         }
 
@@ -46,7 +48,8 @@ class ApiVersion {
      * @param string|ApiVersion $ver - The version number to use
      * @throws Exception
      */
-    public function __construct($ver) {
+    public function __construct($ver)
+    {
         if (!self::isValidVersion($ver)) {
             throw new Exception("Invalid API version: $ver");
         }
@@ -57,15 +60,15 @@ class ApiVersion {
 
             $this->major = (integer)$matches[1];
             $this->minor = (integer)$matches[2];
-        }
-        else {
+        } else {
             // Passed version is an ApiVersion instance; just copy its properties over
             $this->major = $ver->major;
             $this->minor = $ver->minor;
         }
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return "$this->major.$this->minor";
     }
 
@@ -75,7 +78,8 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function eq($ver) {
+    public function eq($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
         return $this->major === $ver->major && $this->minor === $ver->minor;
@@ -87,7 +91,8 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function ne($ver) {
+    public function ne($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
         return $this->major !== $ver->major || $this->minor !== $ver->minor;
@@ -99,7 +104,8 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function gt($ver) {
+    public function gt($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
         return $this->major > $ver->major || ($this->major === $ver->major && $this->minor > $ver->minor);
@@ -111,7 +117,8 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function lt($ver) {
+    public function lt($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
         return $this->major < $ver->major || ($this->major === $ver->major && $this->minor < $ver->minor);
@@ -123,10 +130,12 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function gte($ver) {
+    public function gte($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
-        return $this->major > $ver->major || ($this->major === $ver->major && ($this->minor > $ver->minor || $this->minor === $ver->minor));
+        return $this->major > $ver->major || ($this->major === $ver->major && ($this->minor > $ver->minor
+            || $this->minor === $ver->minor));
     }
 
     /**
@@ -135,9 +144,11 @@ class ApiVersion {
      * @return bool
      * @throws Exception
      */
-    public function lte($ver) {
+    public function lte($ver)
+    {
         $ver = ApiVersion::checkVersion($ver);
 
-        return $this->major < $ver->major || ($this->major === $ver->major && ($this->minor < $ver->minor || $this->minor === $ver->minor));
+        return $this->major < $ver->major || ($this->major === $ver->major && ($this->minor < $ver->minor
+            || $this->minor === $ver->minor));
     }
 }

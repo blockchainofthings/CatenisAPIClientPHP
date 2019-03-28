@@ -5,12 +5,12 @@
 
 namespace Catenis\Exception;
 
-
 /**
  * Class CatenisApiException - Exception returned when an error is returned by the Catenis API endpoint
  * @package Catenis
  */
-class CatenisApiException extends CatenisException {
+class CatenisApiException extends CatenisException
+{
     private $httpStatusMessage;
     private $httpStatusCode;
     private $ctnErrorMessage;
@@ -21,23 +21,28 @@ class CatenisApiException extends CatenisException {
      * @param integer $httpStatusCode
      * @param string|null $ctnErrorMessage
      */
-    public function __construct($httpStatusMessage, $httpStatusCode, $ctnErrorMessage = null) {
+    public function __construct($httpStatusMessage, $httpStatusCode, $ctnErrorMessage = null)
+    {
         $this->httpStatusMessage = $httpStatusMessage;
         $this->httpStatusCode = $httpStatusCode;
         $this->ctnErrorMessage = $ctnErrorMessage;
 
-        parent::__construct("Error returned from Catenis API endpoint: [$httpStatusCode] " . ($ctnErrorMessage !== null ? $ctnErrorMessage : $httpStatusMessage), $httpStatusCode);
+        parent::__construct("Error returned from Catenis API endpoint: [$httpStatusCode] " . ($ctnErrorMessage !== null
+            ? $ctnErrorMessage : $httpStatusMessage), $httpStatusCode);
     }
 
-    public function getHttpStatusMessage() {
+    public function getHttpStatusMessage()
+    {
         return $this->httpStatusMessage;
     }
 
-    public function getHttpStatusCode() {
+    public function getHttpStatusCode()
+    {
         return $this->httpStatusCode;
     }
 
-    public function getCatenisErrorMessage() {
+    public function getCatenisErrorMessage()
+    {
         return $this->ctnErrorMessage;
     }
 }
