@@ -18,7 +18,8 @@
         "ratchet/pawl": "dev-Fix"
     },
     "require-dev": {
-        "react/event-loop": "^1.0"
+        "react/event-loop": "^1.0",
+        "squizlabs/php_codesniffer": "3.*"
     },
     "license": "MIT",
     "authors": [
