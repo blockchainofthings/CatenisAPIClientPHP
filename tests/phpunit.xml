@@ -1,0 +1,24 @@
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/5.7/phpunit.xsd"
+         bootstrap="../vendor/autoload.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         stopOnError="false"
+         stopOnFailure="false"
+         stopOnIncomplete="false"
+         stopOnSkipped="false"
+         stopOnRisky="false"
+         beStrictAboutTestSize="true"
+         timeoutForSmallTests="1"
+         timeoutForMediumTests="10"
+         timeoutForLargeTests="60"
+         verbose="false">
+    <testsuites>
+        <testsuite name="PHP Client ver. 2.0.0">
+            <file>PHPClientTwoZeroZeroTest.php</file>
+            <file>PHPClientAsyncTwoZeroZeroTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>
