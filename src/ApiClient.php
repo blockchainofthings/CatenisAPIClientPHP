@@ -157,8 +157,30 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Given an associative array, returns a copy of that array excluding keys whose value is null
+     * @param array $map
+     * @return array
+     */
+    private static function filterNonNullKeys(array $map)
+    {
+        if (is_array($map)) {
+            $filteredMap = [];
+
+            foreach ($map as $key => $value) {
+                if (!is_null($value)) {
+                    $filteredMap[$key] = $value;
+                }
+            }
+
+            $map = $filteredMap;
+        }
+
+        return $map;
+    }
+
+    /**
      * Set up request parameters for Log Message API endpoint
-     * @param string $message
+     * @param string|array $message
      * @param array|null $options
      * @return array
      */
@@ -169,7 +191,11 @@ class ApiClient extends ApiPackage
         $jsonData->message = $message;
 
         if ($options !== null) {
-            $jsonData->options = $options;
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $jsonData->options = $filteredOptions;
+            }
         }
 
         return [
@@ -180,12 +206,12 @@ class ApiClient extends ApiPackage
 
     /**
      * Set up request parameters for Send Message API endpoint
+     * @param string|array $message
      * @param array $targetDevice
-     * @param string $message
      * @param array|null $options
      * @return array
      */
-    private static function sendMessageRequestParams(array $targetDevice, $message, array $options = null)
+    private static function sendMessageRequestParams($message, array $targetDevice, array $options = null)
     {
         $jsonData = new stdClass();
 
@@ -193,7 +219,11 @@ class ApiClient extends ApiPackage
         $jsonData->targetDevice = $targetDevice;
 
         if ($options !== null) {
-            $jsonData->options = $options;
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $jsonData->options = $filteredOptions;
+            }
         }
 
         return [
@@ -205,17 +235,23 @@ class ApiClient extends ApiPackage
     /**
      * Set up request parameters for Read Message API endpoint
      * @param string $messageId
-     * @param string|null $encoding
+     * @param string|array|null $options
      * @return array
      */
-    private static function readMessageRequestParams($messageId, $encoding = null)
+    private static function readMessageRequestParams($messageId, $options = null)
     {
         $queryParams = null;
 
-        if ($encoding !== null) {
+        if (is_string($options)) {
             $queryParams = [
-                'encoding' => $encoding
+                'encoding' => $options
             ];
+        } elseif (is_array($options)) {
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $queryParams = $filteredOptions;
+            }
         }
 
         return [
@@ -235,6 +271,20 @@ class ApiClient extends ApiPackage
     {
         return [
             'messages/:messageId/container', [
+                'messageId' => $messageId
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for Retrieve Message Progress API endpoint
+     * @param string $messageId
+     * @return array
+     */
+    private static function retrieveMessageProgressRequestParams($messageId)
+    {
+        return [
+            'messages/:messageId/progress', [
                 'messageId' => $messageId
             ]
         ];
@@ -398,10 +448,10 @@ class ApiClient extends ApiPackage
     private static function setPermissionRightsRequestParams($eventName, array $rights)
     {
         return [
-            'permission/events/:eventName/rights', [
+            'permission/events/:eventName/rights',
+            (object)$rights, [
                 'eventName' => $eventName
-            ],
-            (object)$rights
+            ]
         ];
     }
 
@@ -1024,7 +1074,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.6';
+        $version = '0.7';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -1113,7 +1163,7 @@ class ApiClient extends ApiPackage
         // Determine notification service version to use based on API version
         $apiVersion = new ApiVersion($version);
 
-        $notifyServiceVer = $apiVersion->gte('0.6') ? '0.2' : '0.1';
+        $notifyServiceVer = $apiVersion->gte('0.6') ? ($apiVersion->gte('0.7') ? '0.3' : '0.2') : '0.1';
         $notifyWSDispatcherVer = '0.1';
 
         $wsUriScheme = $secure ? 'wss://' : 'ws://';
@@ -1139,14 +1189,37 @@ class ApiClient extends ApiPackage
     //
     /**
      * Log a message
-     * @param string $message - The message to store
+     * @param string|array $message - The message to store. If a string is passed, it is assumed to be the whole
+     *                                 message's contents. Otherwise, it is expected that the message be passed in
+     *                                 chunks using the following map (associative array) to control it:
+     *      'data' => [string],             (optional) The current message data chunk. The actual message's contents
+     *                                       should be comprised of one or more data chunks. NOTE that, when sending a
+     *                                       final message data chunk (isFinal = true and continuationToken specified),
+     *                                       this parameter may either be omitted or have an empty string value
+     *      'isFinal' => [bool],            (optional, default: "true") Indicates whether this is the final (or the
+     *                                       single) message data chunk
+     *      'continuationToken' => [string] (optional) - Indicates that this is a continuation message data chunk.
+     *                                       This should be filled with the value returned in the 'continuationToken'
+     *                                       field of the response from the previously sent message data chunk
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
      *      'encoding' => [string],    (optional, default: 'utf8') One of the following values identifying the encoding
      *                                  of the message: 'utf8'|'base64'|'hex'
-     *      'encrypt' => [boolean],    (optional, default: true) Indicates whether message should be encrypted before
-     *                                  storing
-     *      'storage' => [string]      (optional, default: 'auto') One of the following values identifying where the
-     *                                  message should be stored: 'auto'|'embedded'|'external'
+     *      'encrypt' => [bool],       (optional, default: true) Indicates whether message should be encrypted before
+     *                                  storing. NOTE that, when message is passed in chunks, this option is only taken
+     *                                  into consideration (and thus only needs to be passed) for the final message
+     *                                  data chunk, and it shall be applied to the message's contents as a whole
+     *      'storage' => [string],     (optional, default: 'auto') One of the following values identifying where the
+     *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
+     *                                  is passed in chunks, this option is only taken into consideration (and thus only
+     *                                  needs to be passed) for the final message data chunk, and it shall be applied to
+     *                                  the message's contents as a whole
+     *      'async' => [bool]          (optional, default: false) - Indicates whether processing (storage of message to
+     *                                  the blockchain) should be done asynchronously. If set to true, a provisional
+     *                                  message ID is returned, which should be used to retrieve the processing outcome
+     *                                  by calling the MessageProgress API method. NOTE that, when message is passed in
+     *                                  chunks, this option is only taken into consideration (and thus only needs to be
+     *                                  passed) for the final message data chunk, and it shall be applied to the
+     *                                  message's contents as a whole
      * @return stdClass - An object representing the JSON formatted data returned by the Log Message Catenis API
      *                     endpoint
      * @throws CatenisClientException
@@ -1159,44 +1232,93 @@ class ApiClient extends ApiPackage
 
     /**
      * Send a message
+     * @param string|array $message - The message to send. If a string is passed, it is assumed to be the whole
+     *                                 message's contents. Otherwise, it is expected that the message be passed in
+     *                                 chunks using the following map (associative array) to control it:
+     *      'data' => [string],             (optional) The current message data chunk. The actual message's contents
+     *                                       should be comprised of one or more data chunks. NOTE that, when sending a
+     *                                       final message data chunk (isFinal = true and continuationToken specified),
+     *                                       this parameter may either be omitted or have an empty string value
+     *      'isFinal' => [bool],            (optional, default: "true") Indicates whether this is the final (or the
+     *                                       single) message data chunk
+     *      'continuationToken' => [string] (optional) - Indicates that this is a continuation message data chunk.
+     *                                       This should be filled with the value returned in the 'continuationToken'
+     *                                       field of the response from the previously sent message data chunk
      * @param array $targetDevice - A map (associative array) containing the following keys:
-     *      'id' => [string],               ID of target device. Should be a Catenis device ID unless isProdUniqueId is
-     *                                       true
-     *      'isProdUniqueId' => [boolean]   (optional, default: false) Indicates whether supply ID is a product unique
+     *      'id' => [string],          ID of target device. Should be a Catenis device ID unless isProdUniqueId is true
+     *      'isProdUniqueId' => [bool] (optional, default: false) Indicates whether supply ID is a product unique
      *                                       ID (otherwise, it should be a Catenis device ID)
-     * @param string $message - The message to send
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
-     *      'readConfirmation' => [boolean], (optional, default: false) Indicates whether message should be sent with
-     *                                        read confirmation enabled
-     *      'encoding' => [string],          (optional, default: 'utf8') One of the following values identifying the
-     *                                        encoding of the message: 'utf8'|'base64'|'hex'
-     *      'encrypt' => [boolean],          (optional, default: true) Indicates whether message should be encrypted
-     *                                        before storing
-     *      'storage' => [string]            (optional, default: 'auto') One of the following values identifying where
-     *                                        the message should be stored: 'auto'|'embedded'|'external'
+     *      'encoding' => [string],       (optional, default: 'utf8') One of the following values identifying the
+     *                                     encoding of the message: 'utf8'|'base64'|'hex'
+     *      'encrypt' => [bool],          (optional, default: true) Indicates whether message should be encrypted
+     *                                     before storing. NOTE that, when message is passed in chunks, this option is
+     *                                     only taken into consideration (and thus only needs to be passed) for the
+     *                                     final message data chunk, and it shall be applied to the message's contents
+     *                                     as a whole
+     *      'storage' => [string],        (optional, default: 'auto') One of the following values identifying where the
+     *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
+     *                                     message is passed in chunks, this option is only taken into consideration
+     *                                     (and thus only needs to be passed) for the final message data chunk, and it
+     *                                     shall be applied to the message's contents as a whole
+     *      'readConfirmation' => [bool], (optional, default: false) Indicates whether message should be sent with read
+     *                                     confirmation enabled. NOTE that, when message is passed in chunks, this
+     *                                     option is only taken into consideration (and thus only needs to be passed)
+     *                                     for the final message data chunk, and it shall be applied to the message's
+     *                                     contents as a whole
+     *      'async' => [bool]             (optional, default: false) - Indicates whether processing (storage of message
+     *                                     to the blockchain) should be done asynchronously. If set to true, a
+     *                                     provisional message ID is returned, which should be used to retrieve the
+     *                                     processing outcome by calling the MessageProgress API method. NOTE that,
+     *                                     when message is passed in chunks, this option is only taken into
+     *                                     consideration (and thus only needs to be passed) for the final message data
+     *                                     chunk, and it shall be applied to the message's contents as a whole
      * @return stdClass - An object representing the JSON formatted data returned by the Log Message Catenis API
-*                          endpoint
+     *                     endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    public function sendMessage(array $targetDevice, $message, array $options = null)
+    public function sendMessage($message, array $targetDevice, array $options = null)
     {
-        return $this->sendPostRequest(...self::sendMessageRequestParams($targetDevice, $message, $options));
+        return $this->sendPostRequest(...self::sendMessageRequestParams($message, $targetDevice, $options));
     }
 
     /**
      * Read a message
      * @param string $messageId - The ID of the message to read
-     * @param string|null $encoding - (optional, default: 'utf8') One of the following values identifying the encoding
-     *                                 that should be used for the returned message: 'utf8'|'base64'|'hex'
+     * @param string|array|null options - (optional) If a string is passed, it is assumed to be the value for the
+     *                                     (single) 'encoding' option. Otherwise, it should be a map (associative array)
+     *                                     containing the following keys:
+     *      'encoding' => [string],          (optional, default: 'utf8') One of the following values identifying the
+     *                                        encoding that should be used for the returned message: 'utf8'|'base64'|
+     *                                        'hex'
+     *      'continuationToken' => [string], (optional) Indicates that this is a continuation call and that the
+     *                                        following message data chunk should be returned. This should be filled
+     *                                        with the value returned in the 'continuationToken' field of the response
+     *                                        from the previous call, or the response from the Retrieve Message
+     *                                        Progress API method
+     *      'dataChunkSize' => [int],        (optional) Size, in bytes, of the largest message data chunk that should
+     *                                        be returned. This is effectively used to signal that the message should
+     *                                        be retrieved/read in chunks. NOTE that this option is only taken into
+     *                                        consideration (and thus only needs to be passed) for the initial call to
+     *                                        this API method with a given message ID (no continuation token), and it
+     *                                        shall be applied to the message's contents as a whole
+     *      'async' =>  [bool]               (optional, default: false) Indicates whether processing (retrieval of
+     *                                        message from the blockchain) should be done asynchronously. If set to
+     *                                        true, a cached message ID is returned, which should be used to retrieve
+     *                                        the processing outcome by calling the Retrieve Message Progress API
+     *                                        method. NOTE that this option is only taken into consideration (and thus
+     *                                        only needs to be passed) for the initial call to this API method with a
+     *                                        given message ID (no continuation token), and it shall be applied to the
+     *                                        message's contents as a whole
      * @return stdClass - An object representing the JSON formatted data returned by the Read Message Catenis API
      *                     endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    public function readMessage($messageId, $encoding = null)
+    public function readMessage($messageId, $options = null)
     {
-        return $this->sendGetRequest(...self::readMessageRequestParams($messageId, $encoding));
+        return $this->sendGetRequest(...self::readMessageRequestParams($messageId, $options));
     }
 
     /**
@@ -1210,6 +1332,20 @@ class ApiClient extends ApiPackage
     public function retrieveMessageContainer($messageId)
     {
         return $this->sendGetRequest(...self::retrieveMessageContainerRequestParams($messageId));
+    }
+
+    /**
+     * Retrieve asynchronous message processing progress
+     * @param string $messageId - ID of ephemeral message (either a provisional or a cached message) for which to
+     *                             return processing progress
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Message Container
+     *                     Catenis API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveMessageProgress($messageId)
+    {
+        return $this->sendGetRequest(...self::retrieveMessageProgressRequestParams($messageId));
     }
 
     /**
@@ -1332,7 +1468,7 @@ class ApiClient extends ApiPackage
      *                                        'self' to refer to the ID of the client to which the device belongs. The
      *                                        wildcard character ('*') can also be used to indicate that the rights for
      *                                        all clients should be remove
-     *      'client' => [array]         (optional) A map (associative array), specifying the permission rights to be
+     *      'device' => [array]         (optional) A map (associative array), specifying the permission rights to be
      *                                   attributed at the device level for the specified event, with the following
      *                                   keys:
      *          'allow' => [array]    (optional) A list (simple array) of IDs (or a single ID) of devices to be given
@@ -1612,14 +1748,37 @@ class ApiClient extends ApiPackage
     //
     /**
      * Log a message asynchronously
-     * @param string $message - The message to store
-     * @param array|null $options - A map (associative array) containing the following keys:
-     *      'encoding' => [string],  (optional, default: 'utf8') One of the following values identifying the encoding
-     *                                of the message: 'utf8'|'base64'|'hex'
-     *      'encrypt' => [boolean],  (optional, default: true) Indicates whether message should be encrypted before
-     *                                storing
-     *      'storage' => [string]    (optional, default: 'auto') One of the following values identifying where the
-     *                                message should be stored: 'auto'|'embedded'|'external'
+     * @param string|array $message - The message to store. If a string is passed, it is assumed to be the whole
+     *                                 message's contents. Otherwise, it is expected that the message be passed in
+     *                                 chunks using the following map (associative array) to control it:
+     *      'data' => [string],             (optional) The current message data chunk. The actual message's contents
+     *                                       should be comprised of one or more data chunks. NOTE that, when sending a
+     *                                       final message data chunk (isFinal = true and continuationToken specified),
+     *                                       this parameter may either be omitted or have an empty string value
+     *      'isFinal' => [bool],            (optional, default: "true") Indicates whether this is the final (or the
+     *                                       single) message data chunk
+     *      'continuationToken' => [string] (optional) - Indicates that this is a continuation message data chunk.
+     *                                       This should be filled with the value returned in the 'continuationToken'
+     *                                       field of the response from the previously sent message data chunk
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'encoding' => [string],    (optional, default: 'utf8') One of the following values identifying the encoding
+     *                                  of the message: 'utf8'|'base64'|'hex'
+     *      'encrypt' => [bool],       (optional, default: true) Indicates whether message should be encrypted before
+     *                                  storing. NOTE that, when message is passed in chunks, this option is only taken
+     *                                  into consideration (and thus only needs to be passed) for the final message
+     *                                  data chunk, and it shall be applied to the message's contents as a whole
+     *      'storage' => [string],     (optional, default: 'auto') One of the following values identifying where the
+     *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
+     *                                  is passed in chunks, this option is only taken into consideration (and thus only
+     *                                  needs to be passed) for the final message data chunk, and it shall be applied to
+     *                                  the message's contents as a whole
+     *      'async' => [bool]          (optional, default: false) - Indicates whether processing (storage of message to
+     *                                  the blockchain) should be done asynchronously. If set to true, a provisional
+     *                                  message ID is returned, which should be used to retrieve the processing outcome
+     *                                  by calling the MessageProgress API method. NOTE that, when message is passed in
+     *                                  chunks, this option is only taken into consideration (and thus only needs to be
+     *                                  passed) for the final message data chunk, and it shall be applied to the
+     *                                  message's contents as a whole
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
     public function logMessageAsync($message, array $options = null)
@@ -1629,38 +1788,87 @@ class ApiClient extends ApiPackage
 
     /**
      * Send a message asynchronously
+     * @param string|array $message - The message to send. If a string is passed, it is assumed to be the whole
+     *                                 message's contents. Otherwise, it is expected that the message be passed in
+     *                                 chunks using the following map (associative array) to control it:
+     *      'data' => [string],             (optional) The current message data chunk. The actual message's contents
+     *                                       should be comprised of one or more data chunks. NOTE that, when sending a
+     *                                       final message data chunk (isFinal = true and continuationToken specified),
+     *                                       this parameter may either be omitted or have an empty string value
+     *      'isFinal' => [bool],            (optional, default: "true") Indicates whether this is the final (or the
+     *                                       single) message data chunk
+     *      'continuationToken' => [string] (optional) - Indicates that this is a continuation message data chunk.
+     *                                       This should be filled with the value returned in the 'continuationToken'
+     *                                       field of the response from the previously sent message data chunk
      * @param array $targetDevice - A map (associative array) containing the following keys:
-     *      'id' => [string],               ID of target device. Should be a Catenis device ID unless isProdUniqueId is
-     *                                       true
-     *      'isProdUniqueId' => [boolean]   (optional, default: false) Indicates whether supply ID is a product unique
+     *      'id' => [string],          ID of target device. Should be a Catenis device ID unless isProdUniqueId is true
+     *      'isProdUniqueId' => [bool] (optional, default: false) Indicates whether supply ID is a product unique
      *                                       ID (otherwise, it should be a Catenis device ID)
-     * @param string $message - The message to send
-     * @param array|null $options - A map (associative array) containing the following keys:
-     *      'readConfirmation' => [boolean], (optional, default: false) Indicates whether message should be sent with
-     *                                        read confirmation enabled
-     *      'encoding' => [string],          (optional, default: 'utf8') One of the following values identifying the
-     *                                        encoding of the message: 'utf8'|'base64'|'hex'
-     *      'encrypt' => [boolean],          (optional, default: true) Indicates whether message should be encrypted
-     *                                        before storing
-     *      'storage' => [string]            (optional, default: 'auto') One of the following values identifying where
-     *                                        the message should be stored: 'auto'|'embedded'|'external'
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'encoding' => [string],       (optional, default: 'utf8') One of the following values identifying the
+     *                                     encoding of the message: 'utf8'|'base64'|'hex'
+     *      'encrypt' => [bool],          (optional, default: true) Indicates whether message should be encrypted
+     *                                     before storing. NOTE that, when message is passed in chunks, this option is
+     *                                     only taken into consideration (and thus only needs to be passed) for the
+     *                                     final message data chunk, and it shall be applied to the message's contents
+     *                                     as a whole
+     *      'storage' => [string],        (optional, default: 'auto') One of the following values identifying where the
+     *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
+     *                                     message is passed in chunks, this option is only taken into consideration
+     *                                     (and thus only needs to be passed) for the final message data chunk, and it
+     *                                     shall be applied to the message's contents as a whole
+     *      'readConfirmation' => [bool], (optional, default: false) Indicates whether message should be sent with read
+     *                                     confirmation enabled. NOTE that, when message is passed in chunks, this
+     *                                     option is only taken into consideration (and thus only needs to be passed)
+     *                                     for the final message data chunk, and it shall be applied to the message's
+     *                                     contents as a whole
+     *      'async' => [bool]             (optional, default: false) - Indicates whether processing (storage of message
+     *                                     to the blockchain) should be done asynchronously. If set to true, a
+     *                                     provisional message ID is returned, which should be used to retrieve the
+     *                                     processing outcome by calling the MessageProgress API method. NOTE that,
+     *                                     when message is passed in chunks, this option is only taken into
+     *                                     consideration (and thus only needs to be passed) for the final message data
+     *                                     chunk, and it shall be applied to the message's contents as a whole
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    public function sendMessageAsync(array $targetDevice, $message, array $options = null)
+    public function sendMessageAsync($message, array $targetDevice, array $options = null)
     {
-        return $this->sendPostRequestAsync(...self::sendMessageRequestParams($targetDevice, $message, $options));
+        return $this->sendPostRequestAsync(...self::sendMessageRequestParams($message, $targetDevice, $options));
     }
 
     /**
      * Read a message asynchronously
      * @param string $messageId - The ID of the message to read
-     * @param string|null $encoding - (default: 'utf8') One of the following values identifying the encoding that
-     *                                 should be used for the returned message: 'utf8'|'base64'|'hex'
+     * @param string|array|null options - (optional) If a string is passed, it is assumed to be the value for the
+     *                                     (single) 'encoding' option. Otherwise, it should be a map (associative array)
+     *                                     containing the following keys:
+     *      'encoding' => [string],          (optional, default: 'utf8') One of the following values identifying the
+     *                                        encoding that should be used for the returned message: 'utf8'|'base64'|
+     *                                        'hex'
+     *      'continuationToken' => [string], (optional) Indicates that this is a continuation call and that the
+     *                                        following message data chunk should be returned. This should be filled
+     *                                        with the value returned in the 'continuationToken' field of the response
+     *                                        from the previous call, or the response from the Retrieve Message
+     *                                        Progress API method
+     *      'dataChunkSize' => [int],        (optional) Size, in bytes, of the largest message data chunk that should
+     *                                        be returned. This is effectively used to signal that the message should
+     *                                        be retrieved/read in chunks. NOTE that this option is only taken into
+     *                                        consideration (and thus only needs to be passed) for the initial call to
+     *                                        this API method with a given message ID (no continuation token), and it
+     *                                        shall be applied to the message's contents as a whole
+     *      'async' =>  [bool]               (optional, default: false) Indicates whether processing (retrieval of
+     *                                        message from the blockchain) should be done asynchronously. If set to
+     *                                        true, a cached message ID is returned, which should be used to retrieve
+     *                                        the processing outcome by calling the Retrieve Message Progress API
+     *                                        method. NOTE that this option is only taken into consideration (and thus
+     *                                        only needs to be passed) for the initial call to this API method with a
+     *                                        given message ID (no continuation token), and it shall be applied to the
+     *                                        message's contents as a whole
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    public function readMessageAsync($messageId, $encoding = null)
+    public function readMessageAsync($messageId, $options = null)
     {
-        return $this->sendGetRequestAsync(...self::readMessageRequestParams($messageId, $encoding));
+        return $this->sendGetRequestAsync(...self::readMessageRequestParams($messageId, $options));
     }
 
     /**
@@ -1671,6 +1879,17 @@ class ApiClient extends ApiPackage
     public function retrieveMessageContainerAsync($messageId)
     {
         return $this->sendGetRequestAsync(...self::retrieveMessageContainerRequestParams($messageId));
+    }
+
+    /**
+     * Retrieve asynchronous message processing progress asynchronously
+     * @param string $messageId - ID of ephemeral message (either a provisional or a cached message) for which to
+     *                             return processing progress
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function retrieveMessageProgressAsync($messageId)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveMessageProgressRequestParams($messageId));
     }
 
     /**

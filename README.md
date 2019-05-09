@@ -2,7 +2,7 @@
 
 This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
 
-This current release (1.0.3) targets version 0.6 of the Catenis Enterprise API.
+This current release (2.0.0) targets version 0.7 of the Catenis Enterprise API.
 
 ## Installation
 
@@ -36,9 +36,13 @@ require __DIR__ . 'vendor/autoload.php';
 ### Instantiate the client
  
 ```php
-$ctnApiClient = new \Catenis\ApiClient($deviceId, $apiAccessSecret, [
-    'environment' => 'sandbox'
-]);
+$ctnApiClient = new \Catenis\ApiClient(
+    $deviceId,
+    $apiAccessSecret,
+    [
+        'environment' => 'sandbox'
+    ]
+);
 ```
 
 ### Asynchronous method calls
@@ -53,20 +57,27 @@ To be used with an event loop, pass the event loop instance as an option when in
 ```php
 $loop = \React\EventLoop\Factory::create();
 
-$ctnApiClient = new \Catenis\ApiClient($deviceId, $apiAccessSecret, [
-    'environment' => 'sandbox'
-    'eventLoop' => $loop
-]);
+$ctnApiClient = new \Catenis\ApiClient(
+    $deviceId,
+    $apiAccessSecret,
+    [
+        'environment' => 'sandbox'
+        'eventLoop' => $loop
+    ]
+);
 ```
 
 Example of processing asynchronous API method calls.
 
 ```php
-$ctnApiClient->logMessageAsync('My message')->then(function (stdClass $data) {
-    // Process returned data
-}, function (\Catenis\Exception\CatenisException $ex) {
-    // Process exception
-});
+$ctnApiClient->logMessageAsync('My message')->then(
+    function (stdClass $data) {
+        // Process returned data
+    },
+    function (\Catenis\Exception\CatenisException $ex) {
+        // Process exception
+    }
+);
 ```
 
 To force the returned promise to complete and get the data returned by the API method, use its `wait()` method.
@@ -76,8 +87,7 @@ try {
     $data = $ctnApiClient->logMessageAsync('My message')->wait();
 
     // Process returned data
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -98,6 +108,8 @@ object(stdClass)#54 (1) {
 
 ### Logging (storing) a message to the blockchain
 
+#### Passing the whole message's contents at once
+
 ```php
 try {
     $data = $ctnApiClient->logMessage('My message', [
@@ -108,49 +120,309 @@ try {
 
     // Process returned data
     echo 'ID of logged message: ' . $data->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
 }
-catch (\Catenis\Exception\CatenisException $ex) {
+```
+
+#### Passing the message's contents in chunks
+
+```php
+$message = [
+    'First part of message',
+    'Second part of message',
+    'Third and last part of message'
+];
+
+try {
+    $continuationToken = null;
+
+    foreach ($message as $chunk) {
+        $data = $ctnApiClient->logMessage([
+            'data' => $chunk,
+            'isFinal' => false,
+            'continuationToken' => $continuationToken
+        ], [
+            'encoding' => 'utf8'
+        ]);
+
+        $continuationToken = $data->continuationToken;
+    }
+
+    // Signal that message has ended and get result
+    $data = $ctnApiClient->logMessage([
+        'isFinal' => true,
+        'continuationToken' => $continuationToken
+    ], [
+        'encrypt' => true,
+        'storage' => 'auto'
+    ]);
+
+    echo 'ID of logged message: ' . $data->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Logging message asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->logMessage('My message', [
+        'encoding' => 'utf8',
+        'encrypt' => true,
+        'storage' => 'auto',
+        'async' => true
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $provisionalMessageId = $data->provisionalMessageId;
+    $result = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveMessageProgress($provisionalMessageId);
+
+        // Process returned data
+        echo 'Number of bytes processed so far: ' . $data->progress->bytesProcessed . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Get result
+                $result = $data->result;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (is_null($result));
+
+    echo 'ID of logged message: ' . $result->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
 
 ### Sending a message to another device
 
+#### Passing the whole message's contents at once
+
 ```php
 try {
-    $data = $ctnApiClient->sendMessage([
+    $data = $ctnApiClient->sendMessage('My message', [
         'id' => $targetDeviceId,
         'isProdUniqueId' => false
-    ],
-    'My message to send', [
-        'readConfirmation' => true,
+    ], [
         'encoding' => 'utf8',
         'encrypt' => true,
-        'storage' => 'auto'
+        'storage' => 'auto',
+        'readConfirmation' => true
     ]);
 
     // Process returned data
     echo 'ID of sent message: ' . $data->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
 }
-catch (\Catenis\Exception\CatenisException $ex) {
+```
+
+#### Passing the message's contents in chunks
+
+```php
+$message = [
+    'First part of message',
+    'Second part of message',
+    'Third and last part of message'
+];
+
+try {
+    $continuationToken = null;
+
+    foreach ($message as $chunk) {
+        $data = $ctnApiClient->sendMessage([
+            'data' => $chunk,
+            'isFinal' => false,
+            'continuationToken' => $continuationToken
+        ], [
+            'id' => $targetDeviceId,
+            'isProdUniqueId' => false
+        ], [
+            'encoding' => 'utf8'
+        ]);
+
+        $continuationToken = $data->continuationToken;
+    }
+
+    // Signal that message has ended and get result
+    $data = $ctnApiClient->sendMessage([
+        'isFinal' => true,
+        'continuationToken' => $continuationToken
+    ], [
+        'id' => $targetDeviceId,
+        'isProdUniqueId' => false
+    ], [
+        'encrypt' => true,
+        'storage' => 'auto',
+        'readConfirmation' => true
+    ]);
+
+    echo 'ID of sent message: ' . $data->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Sending message asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->sendMessage('My message', [
+        'id' => $targetDeviceId,
+        'isProdUniqueId' => false
+    ], [
+        'encoding' => 'utf8',
+        'encrypt' => true,
+        'storage' => 'auto',
+        'readConfirmation' => true,
+        'async' => true
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $provisionalMessageId = $data->provisionalMessageId;
+    $result = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveMessageProgress($provisionalMessageId);
+
+        // Process returned data
+        echo 'Number of bytes processed so far: ' . $data->progress->bytesProcessed . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Get result
+                $result = $data->result;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (is_null($result));
+
+    echo 'ID of sent message: ' . $result->messageId . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
 
 ### Reading a message
 
+#### Retrieving the whole read message's contents at once
+ 
 ```php
 try {
     $data = $ctnApiClient->readMessage($messageId, 'utf8');
 
     // Process returned data
-    echo 'Read message: ' . $data->message . PHP_EOL;
-
-    if ($data->action === 'send') {
-        echo 'Message sent from: ' . print_r($data->from, true);
+    if ($data->msgInfo->action === 'send') {
+        echo 'Message sent from: ' . print_r($data->msgInfo->from, true);
     }
+
+    echo 'Read message: ' . $data->msgData . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
 }
-catch (\Catenis\Exception\CatenisException $ex) {
+```
+
+#### Retrieving the read message's contents in chunks
+
+```php
+try {
+    $continuationToken = null;
+    $chunkCount = 1;
+
+    do {
+        $data = $ctnApiClient->readMessage($messageId, [
+            'encoding' => 'utf8',
+            'continuationToken' => $continuationToken,
+            'dataChunkSize' => 1024
+        ]);
+
+        // Process returned data
+        if (isset($data->msgInfo) && $data->msgInfo->action == 'send') {
+            echo 'Message sent from: ' . $data->msgInfo->from);
+        }
+        
+        echo 'Read message (chunk ' . $chunkCount . '): ' . $data->msgData);
+        
+        if (isset($data->continuationToken)) {
+            // Get continuation token to continue reading message
+            $continuationToken = $data->continuationToken;
+            $chunkCount += 1;
+        } else {
+            $continuationToken = null;
+        }
+    } while (!is_null($continuationToken));
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Reading message asynchronously
+
+```php
+try {
+    // Request to read message asynchronously
+    $data = $ctnApiClient->readMessage($messageId, [
+        'async' => true
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $cachedMessageId = $data->cachedMessageId;
+    $result = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveMessageProgress($cachedMessageId);
+
+        // Process returned data
+        echo 'Number of bytes processed so far: ' . $data->progress->bytesProcessed . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Get result
+                $result = $data->result;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (is_null($result));
+
+    // Retrieve read message
+    $data = $ctnApiClient->readMessage($messageId, [
+        'encoding' => 'utf8',
+        'continuationToken' => $result->continuationToken
+    ]);
+
+    if ($data->msgInfo->action === 'send') {
+        echo 'Message sent from: ' . print_r($data->msgInfo->from, true);
+    }
+
+    echo 'Read message: ' . $data->msgData . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -167,11 +439,40 @@ try {
     if (isset($data->externalStorage)) {
         echo 'IPFS reference to message: ' . $data->externalStorage->ipfs;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
+
+### Retrieving asynchronous message processing progress
+
+```php
+try {
+    $data = $ctnApiClient->retrieveMessageProgress($provisionalMessageId);
+
+    // Process returned data
+    echo 'Number of bytes processed so far: ' . $data->progress->bytesProcessed . PHP_EOL;
+
+    if ($data->progress->done) {
+        if ($data->progress->success) {
+            // Get result
+            echo 'Asynchronous processing result: ' . $data->result . PHP_EOL;
+        }
+        else {
+            // Process error
+            echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                . $data->progress->error->message . PHP_EOL;
+        }
+    } else {
+        // Asynchronous processing not done yet. Continue pooling
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+> **Note**: see the *Logging message asynchronously*, *Sending message asynchronously* and *Reading message
+>asynchronously* sections above for more complete examples.
 
 ### Listing messages
 
@@ -192,8 +493,7 @@ try {
             echo 'Warning: not all messages fulfilling search criteria have been returned!' . PHP_EOL;
         }
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -218,8 +518,7 @@ try {
 
     // Process returned data
     echo 'ID of newly issued asset: ' . $data->assetId . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -235,8 +534,7 @@ try {
 
     // Process returned data
     echo 'Total existent asset balance (after issuance): ' . $data->totalExistentBalance . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -252,8 +550,7 @@ try {
 
     // Process returned data
     echo 'Remaining asset balance: ' . $data->remainingBalance . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -266,8 +563,7 @@ try {
 
     // Process returned data
     echo 'Asset info:' . print_r($data, true);
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -281,8 +577,7 @@ try {
     // Process returned data
     echo 'Current asset balance: ' . $data->balance->total . PHP_EOL;
     echo 'Amount not yet confirmed: ' . $data->balance->unconfirmed . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -294,7 +589,7 @@ try {
     $data = $ctnApiClient->listOwnedAssets(200, 0);
     
     // Process returned data
-    forEach($data->ownedAssets as $idx => $ownedAsset) {
+    foreach ($data->ownedAssets as $idx => $ownedAsset) {
         echo 'Owned asset #' . ($idx + 1) . ':' . PHP_EOL;
         echo '  - asset ID: ' . $ownedAsset->assetId . PHP_EOL;
         echo '  - current asset balance: ' . $ownedAsset->balance->total . PHP_EOL;
@@ -304,8 +599,7 @@ try {
     if ($data->hasMore) {
         echo 'Not all owned assets have been returned' . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -317,7 +611,7 @@ try {
     $data = $ctnApiClient->listIssuedAssets(200, 0);
     
     // Process returned data
-    forEach($data->issuedAssets as $idx => $issuedAsset) {
+    foreach ($data->issuedAssets as $idx => $issuedAsset) {
         echo 'Issued asset #' . ($idx + 1) . ':' . PHP_EOL;
         echo '  - asset ID: ' . $issuedAsset->assetId . PHP_EOL;
         echo '  - total existent balance: ' . $issuedAsset->totalExistentBalance . PHP_EOL;
@@ -326,8 +620,7 @@ try {
     if ($data->hasMore) {
         echo 'Not all issued assets have been returned' . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -339,7 +632,7 @@ try {
     $data = $ctnApiClient->retrieveAssetIssuanceHistory($assetId, new \DateTime('20170101T000000Z'), null);
     
     // Process returned data
-    forEach($data->issuanceEvents as $idx => $issuanceEvent) {
+    foreach ($data->issuanceEvents as $idx => $issuanceEvent) {
         echo 'Issuance event #', ($idx + 1) . ':' . PHP_EOL;
         echo '  - issued amount: ' . $issuanceEvent->amount . PHP_EOL;
         echo '  - device to which issued amount had been assigned: ' . print_r($issuanceEvent->holdingDevice, true);
@@ -347,10 +640,10 @@ try {
     }
 
     if ($data->countExceeded) {
-        echo 'Warning: not all asset issuance events that took place within the specified time frame have been returned!' . PHP_EOL;
+        echo 'Warning: not all asset issuance events that took place within the specified time frame have been'
+            . ' returned!' . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -366,7 +659,7 @@ try {
     $data = $ctnApiClient->listAssetHolders($assetId, 200, 0);
     
     // Process returned data
-    forEach($data->assetHolders as $idx => $assetHolder) {
+    foreach ($data->assetHolders as $idx => $assetHolder) {
         echo 'Asset holder #' . ($idx + 1) . ':' . PHP_EOL;
         echo '  - device holding an amount of the asset: ' . print_r($assetHolder->holder, true);
         echo '  - amount of asset currently held by device: ' . $assetHolder->balance->total . PHP_EOL;
@@ -376,8 +669,7 @@ try {
     if ($data->hasMore) {
         echo 'Not all asset holders have been returned' . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -389,11 +681,10 @@ try {
     $data = $ctnApiClient->listPermissionEvents();
 
     // Process returned data
-    forEach($data as $eventName => $description) {
+    foreach ($data as $eventName => $description) {
         echo 'Event name: ' . $eventName . '; event description: ' . $description . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -409,11 +700,13 @@ try {
     
     if (isset($data->catenisNode)) {
         if (isset($data->catenisNode->allow)) {
-            echo 'Index of Catenis nodes with \'allow\' permission right: ' . implode($data->catenisNode->allow, ', ') . PHP_EOL;
+            echo 'Index of Catenis nodes with \'allow\' permission right: ' . implode($data->catenisNode->allow, ', ')
+                . PHP_EOL;
         }
         
         if (isset($data->catenisNode->deny)) {
-            echo 'Index of Catenis nodes with \'deny\' permission right: ' . implode($data->catenisNode->deny, ', ') . PHP_EOL;
+            echo 'Index of Catenis nodes with \'deny\' permission right: ' . implode($data->catenisNode->deny, ', ')
+                . PHP_EOL;
         }
     }
     
@@ -436,8 +729,7 @@ try {
             echo 'Devices with \'deny\' permission right: ' . print_r($data->device->deny, true);
         }
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -446,31 +738,33 @@ catch (\Catenis\Exception\CatenisException $ex) {
 
 ```php
 try {
-    $data = $ctnApiClient->setPermissionRights('receive-msg', [
-        'system' => 'deny',
-        'catenisNode' => [
-            'allow' => 'self'
-        ],
-        'client' => [
-            'allow' => [
-                'self',
-                $clientId
+    $data = $ctnApiClient->setPermissionRights(
+        'receive-msg',
+        [
+            'system' => 'deny',
+            'catenisNode' => [
+                'allow' => 'self'
+            ],
+            'client' => [
+                'allow' => [
+                    'self',
+                    $clientId
+                ]
+            ],
+            'device' => [
+                'deny' => [[
+                    'id' => $deviceId1
+                ], [
+                    'id' => 'ABCD001',
+                    'isProdUniqueId' => true
+                ]]
             ]
-        ],
-        'device' => [
-            'deny' => [[
-                'id' => $deviceId1
-            ], [
-                'id' => 'ABCD001',
-                'isProdUniqueId' => true
-            ]]
         ]
-    ]);
+    );
 
     // Process returned data
     echo 'Permission rights successfully set' . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -484,8 +778,7 @@ try {
     // Process returned data
     $deviceId = array_keys(get_object_vars($data))[0];
     echo 'Effective right for device ' . $deviceId . ': ' . $data->$deviceId . PHP_EOL;
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -500,8 +793,7 @@ try {
     echo 'Device\'s Catenis node ID info:' . print_r($data->catenisNode, true);
     echo 'Device\'s client ID info:' . print_r($data->client, true);
     echo 'Device\'s own ID info:' . print_r($data->device, true);
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -513,11 +805,10 @@ try {
     $data = $ctnApiClient->listNotificationEvents();
 
     // Process returned data
-    forEach($data as $eventName => $description) {
+    foreach ($data as $eventName => $description) {
         echo 'Event name: ' . $eventName . '; event description: ' . $description . PHP_EOL;
     }
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
 ```
@@ -534,10 +825,13 @@ instantiating the *ApiClient* object, in the same way as when using the asynchro
 ```php
 $loop = \React\EventLoop\Factory::create();
 
-$ctnApiClient = new \Catenis\ApiClient($deviceId, $apiAccessSecret, [
-    'environment' => 'sandbox'
-    'eventLoop' => $loop
-]);
+$ctnApiClient = new \Catenis\ApiClient(
+    $deviceId,
+    $apiAccessSecret, [
+        'environment' => 'sandbox'
+        'eventLoop' => $loop
+    ]
+);
 ```
 
 > **Note**: if no event loop instance is passed when instantiating the *ApiClient* object, an internal event loop is
@@ -576,11 +870,14 @@ $wsNtfyChannel->on('notify', function ($data) {
 Open notification channel.
 
 ```php
-$wsNtfyChannel->open()->then(function () {
-    // WebSocket notification channel is open
-}, function (\Catenis\Exception\WsNotificationException $ex) {
-    // Process exception
-});
+$wsNtfyChannel->open()->then(
+    function () {
+        // WebSocket notification channel is open
+    },
+    function (\Catenis\Exception\WsNotificationException $ex) {
+        // Process exception
+    }
+);
 ```
 
 > **Note**: the `open()` method of the WebSocket notification channel object works in an asynchronous way, and as such
@@ -623,16 +920,14 @@ try {
     $data = $ctnApiClient->readMessage('INVALID_MSG_ID', null);
     
     // Process returned data
-}
-catch (\Catenis\Exception\CatenisException $ex) {
+} catch (\Catenis\Exception\CatenisException $ex) {
     if ($ex instanceof \Catenis\Exception\CatenisApiException) {
         // Catenis API error
         echo 'HTTP status code: ' . $ex->getHttpStatusCode() . PHP_EOL;
         echo 'HTTP status message: ' . $ex->getHttpStatusMessage() . PHP_EOL;
         echo 'Catenis error message: ' . $ex->getCatenisErrorMessage() . PHP_EOL;
         echo 'Compiled error message: ' . $ex->getMessage() . PHP_EOL;
-    }
-    else {
+    } else {
         // Client error
         echo $ex . PHP_EOL;
     }
@@ -662,17 +957,19 @@ The following exceptions can take place when opening a WebSocket notification ch
 Usage example:
 
 ```php
-$wsNtfyChannel->open()->then(function () {
-    // WebSocket notification channel is open
-}, function (\Catenis\Exception\WsNotificationException $ex) {
-    if ($ex instanceof \Catenis\Exception\OpenWsConnException) {
-        // Error opening WebSocket connection
-        echo $ex . PHP_EOL;
+$wsNtfyChannel->open()->then(
+    function () {
+        // WebSocket notification channel is open
+    },
+    function (\Catenis\Exception\WsNotificationException $ex) {
+        if ($ex instanceof \Catenis\Exception\OpenWsConnException) {
+            // Error opening WebSocket connection
+            echo $ex . PHP_EOL;
+        } else {
+            // WebSocket nofitication channel already open
+        }
     }
-    else {
-        // WebSocket nofitication channel already open
-    }
-});
+);
 ```
 
 ## Catenis Enterprise API Documentation
