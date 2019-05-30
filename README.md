@@ -2,7 +2,8 @@
 
 This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
 
-This current release (2.0.0) targets version 0.7 of the Catenis Enterprise API.
+This current release (2.1.0) targets version 0.7 of the Catenis Enterprise API and version 0.2 of the WebSocket
+notification message dispatcher.
 
 ## Installation
 
