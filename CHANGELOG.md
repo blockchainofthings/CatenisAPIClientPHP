@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.0] - 2019-05-30
+
+### New features
+- WebSocket notification channel object emits new `open` event.
+
 ## [2.0.0] - 2019-05-02
 
 ### Breaking changes
