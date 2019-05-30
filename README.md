@@ -857,6 +857,11 @@ $wsNtfyChannel->on('close', function ($code, $reason) {
     // Process indication that underlying WebSocket connection has been closed
 });
 
+$wsNtfyChannel->on('open', function () {
+    // Process indication that notification channel is successfully open
+    //  and ready to send notifications 
+});
+
 $wsNtfyChannel->on('notify', function ($data) {
     // Process received notification
     echo 'Received notification:' . PHP_EOL;
@@ -872,7 +877,8 @@ Open notification channel.
 ```php
 $wsNtfyChannel->open()->then(
     function () {
-        // WebSocket notification channel is open
+        // WebSocket client successfully connected. Wait for open event to make
+        //  sure that notification channel is ready to send notifications
     },
     function (\Catenis\Exception\WsNotificationException $ex) {
         // Process exception
@@ -959,7 +965,8 @@ Usage example:
 ```php
 $wsNtfyChannel->open()->then(
     function () {
-        // WebSocket notification channel is open
+        // WebSocket client successfully connected. Wait for open event to make
+        //  sure that notification channel is ready to send notifications
     },
     function (\Catenis\Exception\WsNotificationException $ex) {
         if ($ex instanceof \Catenis\Exception\OpenWsConnException) {

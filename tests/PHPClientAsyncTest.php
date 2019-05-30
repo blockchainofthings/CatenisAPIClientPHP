@@ -12,9 +12,9 @@ use React\EventLoop;
 use Catenis\ApiClient;
 
 /**
- * Test cases for Catenis API Client for PHP asynchronous methods (ver. 2.0.0)
+ * Test cases for Catenis API Client for PHP asynchronous methods
  */
-class PHPClientAsyncTwoZeroZeroTest extends TestCase
+class PHPClientAsyncTest extends TestCase
 {
     protected static $testStartDate;
     protected static $device1 = [
@@ -33,7 +33,7 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
     {
         self::$testStartDate = new DateTime();
 
-        echo "\nPHPClientAsyncTwoZeroZeroTest test class\n";
+        echo "\nPHPClientAsyncTest test class\n";
 
         echo 'Enter device #1 ID: [' . self::$device1['id'] . '] ';
         $id = rtrim(fgets(STDIN));
@@ -557,7 +557,7 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
                     );
             
                     if (!$data->progress->success) {
-                        throw new Error($data->progress->error->message);
+                        throw new Exception($data->progress->error->message);
                     }
             
                     $this->assertThat(
@@ -852,10 +852,70 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
     }
 
     /**
+     * Test that WebSocket notification channel object emits 'open' event
+     *
+     * @depends testListNotificationEventsAsync
+     * @medium
+     * @return void
+     */
+    public function testWSNotifyChannelOpenEvent()
+    {
+        $wsNtfyChannel = self::$ctnClientAsync1->createWsNotifyChannel('new-msg-received');
+
+        $error = null;
+
+        $wsNtfyChannel->on('error', function ($err) use (&$error) {
+            // Record error and stop event loop
+            $error = new Exception("'Error' event received instead of 'open' event. Returned error: $err");
+            self::$loop->stop();
+        });
+        
+        $wsNtfyChannel->on('close', function ($code, $reason) use (&$error) {
+            // Record error and stop event loop
+            $error = new Exception(
+                "'Close' event received instead of 'open' event. Returned close info: [$code] $reason"
+            );
+            self::$loop->stop();
+        });
+        
+        $wsNtfyChannel->on('notify', function ($retVal) use (&$error) {
+            // Record error and stop event loop
+            $error = new Exception(
+                "'Notify' event received instead of 'open' event. Returned data: " . print_r($retVal, true)
+            );
+            self::$loop->stop();
+        });
+        
+        $wsNtfyChannel->on('open', function () {
+            // Just stop event loop
+            self::$loop->stop();
+        });
+    
+        $wsNtfyChannel->open()->then(
+            function () {
+                // WebSocket client successfully connected. Wait for open event
+            },
+            function (\Catenis\Exception\WsNotificationException $ex) use (&$error) {
+                // Get error and stop event loop
+                $error = $ex;
+                self::$loop->stop();
+            }
+        );
+
+        // Start event loop
+        self::$loop->run();
+
+        if (isset($error)) {
+            throw $error;
+        }
+    }
+
+    /**
      * Test receiving notification of new message (sent asynchronously) received
      *
      * @depends testListNotificationEventsAsync
      * @depends testCheckEffectivePermissionRightAsync
+     * @depends testWSNotifyChannelOpenEvent
      * @large
      * @return array Info about the sent message
      */
@@ -882,6 +942,24 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
             }
         });
         
+        $wsNtfyChannel->on('open', function () use (&$message, &$messageId, &$error) {
+            // WebSocket notification channel successfully open and ready to send notifications.
+            //  Send message from device #1 to device #2
+            $message = 'Test message #' . rand();
+
+            self::$ctnClientAsync1->sendMessageAsync($message, self::$device2)->then(
+                function ($data2) use (&$messageId) {
+                    // Message successfully sent. Save message ID
+                    $messageId = $data2->messageId;
+                },
+                function ($ex) use (&$error) {
+                    // Get error and stop event loop
+                    $error = $ex;
+                    self::$loop->stop();
+                }
+            );
+        });
+        
         $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$messageId) {
             if (!is_null($messageId)) {
                 // Notification received. Get returned data, close notification channel, and stop event loop
@@ -892,25 +970,8 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
         });
     
         $wsNtfyChannel->open()->then(
-            function () use (&$message, &$messageId, &$error) {
-                // Wait for 5 secs to make sure that notification channel is functional (user authorized)
-                self::$loop->addTimer(5.0, function () use (&$message, &$messageId, &$error) {
-                    // WebSocket notification channel is open.
-                    //  Send message from device #1 to device #2
-                    $message = 'Test message #' . rand();
-
-                    self::$ctnClientAsync1->sendMessageAsync($message, self::$device2)->then(
-                        function ($data2) use (&$messageId) {
-                            // Message successfully sent. Save message ID
-                            $messageId = $data2->messageId;
-                        },
-                        function ($ex) use (&$error) {
-                            // Get error and stop event loop
-                            $error = $ex;
-                            self::$loop->stop();
-                        }
-                    );
-                });
+            function () {
+                // WebSocket client successfully connected. Wait for open event
             },
             function (\Catenis\Exception\WsNotificationException $ex) use (&$error) {
                 // Get error and stop event loop
@@ -967,6 +1028,37 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
             }
         });
         
+        $wsNtfyChannel->on('open', function () use (
+            &$message,
+            &$ephemeralMessageId,
+            &$error,
+            &$notificationReceived,
+            &$messageLogged
+        ) {
+            // WebSocket notification channel successfully open and ready to send notifications.
+            //  Asynchronously log a message
+            $message = 'Test message #' . rand();
+
+            self::$ctnClientAsync1->logMessageAsync($message, [
+                'async' => true
+            ])->then(
+                function ($data2) use (&$ephemeralMessageId, &$notificationReceived, &$messageLogged) {
+                    // Message successfully logged. Save returned provisional message ID
+                    $ephemeralMessageId = $data2->provisionalMessageId;
+                    $messageLogged = true;
+
+                    if ($notificationReceived) {
+                        self::$loop->stop();
+                    }
+                },
+                function ($ex) use (&$error) {
+                    // Get error and stop event loop
+                    $error = $ex;
+                    self::$loop->stop();
+                }
+            );
+        });
+        
         $wsNtfyChannel->on('notify', function ($retVal) use (
             &$data,
             &$wsNtfyChannel,
@@ -985,38 +1077,8 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
         });
 
         $wsNtfyChannel->open()->then(
-            function () use (&$message, &$ephemeralMessageId, &$error, &$notificationReceived, &$messageLogged) {
-                // Wait for 5 secs to make sure that notification channel is functional (user authorized)
-                self::$loop->addTimer(5.0, function () use (
-                    &$message,
-                    &$ephemeralMessageId,
-                    &$error,
-                    &$notificationReceived,
-                    &$messageLogged
-                ) {
-                    // WebSocket notification channel is open.
-                    //  Asynchronously log a message
-                    $message = 'Test message #' . rand();
-
-                    self::$ctnClientAsync1->logMessageAsync($message, [
-                        'async' => true
-                    ])->then(
-                        function ($data2) use (&$ephemeralMessageId, &$notificationReceived, &$messageLogged) {
-                            // Message successfully logged. Save returned provisional message ID
-                            $ephemeralMessageId = $data2->provisionalMessageId;
-                            $messageLogged = true;
-
-                            if ($notificationReceived) {
-                                self::$loop->stop();
-                            }
-                        },
-                        function ($ex) use (&$error) {
-                            // Get error and stop event loop
-                            $error = $ex;
-                            self::$loop->stop();
-                        }
-                    );
-                });
+            function () {
+                // WebSocket client successfully connected. Wait for open event
             },
             function (\Catenis\Exception\WsNotificationException $ex) use (&$error) {
                 // Get error and stop event loop
@@ -1047,7 +1109,7 @@ class PHPClientAsyncTwoZeroZeroTest extends TestCase
             );
 
             if (!$data->progress->success) {
-                throw new Error($data->progress->error->message);
+                throw new Exception($data->progress->error->message);
             }
 
             $this->assertEquals($data->ephemeralMessageId, $ephemeralMessageId);

@@ -16,9 +16,9 @@
          timeoutForLargeTests="60"
          verbose="false">
     <testsuites>
-        <testsuite name="PHP Client ver. 2.0.0">
-            <file>PHPClientTwoZeroZeroTest.php</file>
-            <file>PHPClientAsyncTwoZeroZeroTest.php</file>
+        <testsuite name="PHP Client">
+            <file>PHPClientTest.php</file>
+            <file>PHPClientAsyncTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

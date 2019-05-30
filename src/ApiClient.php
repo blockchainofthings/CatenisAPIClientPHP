@@ -42,6 +42,7 @@ class ApiClient extends ApiPackage
     private static $wsNtfyRootPath =  'ws';
     private static $timestampHdr = 'X-BCoT-Timestamp';
     private static $notifyWsSubprotocol = 'notify.catenis.io';
+    private static $notifyChannelOpenMsg = 'NOTIFICATION_CHANNEL_OPEN';
 
     protected $eventLoop;
 
@@ -68,6 +69,14 @@ class ApiClient extends ApiPackage
     protected function getNotifyWsSubprotocol()
     {
         return self::$notifyWsSubprotocol;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getNotifyChannelOpenMsg()
+    {
+        return self::$notifyChannelOpenMsg;
     }
 
     /**
@@ -1164,7 +1173,7 @@ class ApiClient extends ApiPackage
         $apiVersion = new ApiVersion($version);
 
         $notifyServiceVer = $apiVersion->gte('0.6') ? ($apiVersion->gte('0.7') ? '0.3' : '0.2') : '0.1';
-        $notifyWSDispatcherVer = '0.1';
+        $notifyWSDispatcherVer = '0.2';
 
         $wsUriScheme = $secure ? 'wss://' : 'ws://';
         $wsUriPrefix = $wsUriScheme . $host;

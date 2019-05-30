@@ -34,6 +34,7 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface
     {
         $this->ctnApiClient = $ctnApiClient;
         $this->eventName = $eventName;
+        $this->notifyChannelOpenMsg = $this->invokeMethod($this->ctnApiClient, 'getNotifyChannelOpenMsg');
     }
 
     /**
@@ -80,8 +81,14 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface
                     });
 
                     $ws->on('message', function ($message) {
-                        // Emit notify event passing the parsed contents of the message
-                        $this->emit('notify', [json_decode($message)]);
+                        if ($message == $this->notifyChannelOpenMsg) {
+                            // Special notification channel open message. Emit open event indicating that
+                            //  notification channel is successfully open and ready to send notifications
+                            $this->emit('open');
+                        } else {
+                            // Emit notify event passing the parsed contents of the message
+                            $this->emit('notify', [json_decode($message)]);
+                        }
                     });
 
                     // Send authentication message
