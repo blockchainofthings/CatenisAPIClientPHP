@@ -29,7 +29,7 @@ class PHPClientTest extends TestCase
     protected static $ctnClientAsync2;
     protected static $loop;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$testStartDate = new DateTime();
 
@@ -307,37 +307,20 @@ class PHPClientTest extends TestCase
                 $data,
                 $this->logicalAnd(
                     $this->objectHasAttribute('action'),
-                    $this->objectHasAttribute('progress'),
-                    $this->attribute(
-                        $this->objectHasAttribute('done'),
-                        'progress'
-                    )
+                    $this->objectHasAttribute('progress')
                 )
             );
+            $this->assertObjectHasAttribute('done', $data->progress);
         } while (!$data->progress->done);
 
-        $this->assertThat(
-            $data,
-            $this->attribute(
-                $this->objectHasAttribute('success'),
-                'progress'
-            )
-        );
+        $this->assertObjectHasAttribute('success', $data->progress);
 
         if (!$data->progress->success) {
             throw new Exception($data->progress->error->message);
         }
 
-        $this->assertThat(
-            $data,
-            $this->logicalAnd(
-                $this->objectHasAttribute('result'),
-                $this->attribute(
-                    $this->objectHasAttribute('messageId'),
-                    'result'
-                )
-            )
-        );
+        $this->assertObjectHasAttribute('result', $data);
+        $this->assertObjectHasAttribute('messageId', $data->result);
     }
 
     /**
@@ -520,6 +503,8 @@ class PHPClientTest extends TestCase
         if (isset($error)) {
             throw $error;
         }
+
+        $this->assertTrue(true);
     }
 
     /**
@@ -681,14 +666,14 @@ class PHPClientTest extends TestCase
                 $this->logicalAnd(
                     $this->objectHasAttribute('ephemeralMessageId'),
                     $this->objectHasAttribute('action'),
-                    $this->objectHasAttribute('progress'),
-                    $this->attribute(
-                        $this->logicalAnd(
-                            $this->objectHasAttribute('done'),
-                            $this->objectHasAttribute('success')
-                        ),
-                        'progress'
-                    )
+                    $this->objectHasAttribute('progress')
+                )
+            );
+            $this->assertThat(
+                $data->progress,
+                $this->logicalAnd(
+                    $this->objectHasAttribute('done'),
+                    $this->objectHasAttribute('success')
                 )
             );
 
@@ -698,16 +683,8 @@ class PHPClientTest extends TestCase
 
             $this->assertEquals($data->ephemeralMessageId, $ephemeralMessageId);
 
-            $this->assertThat(
-                $data,
-                $this->logicalAnd(
-                    $this->objectHasAttribute('result'),
-                    $this->attribute(
-                        $this->objectHasAttribute('messageId'),
-                        'result'
-                    )
-                )
-            );
+            $this->assertObjectHasAttribute('result', $data);
+            $this->assertObjectHasAttribute('messageId', $data->result);
         } else {
             throw $error;
         }
@@ -832,18 +809,22 @@ class PHPClientTest extends TestCase
         $this->assertThat(
             $data,
             $this->logicalAnd(
-                $this->attributeEqualTo('name', $assetInfo['assetName']),
-                $this->attributeEqualTo('description', 'Asset used for testing purpose'),
-                $this->attributeEqualTo('canReissue', true),
-                $this->attributeEqualTo('decimalPlaces', 2),
-                $this->attribute(
-                    $this->attributeEqualTo('deviceId', self::$device1['id']),
-                    'issuer'
-                ),
-                $this->attributeEqualTo('totalExistentBalance', 200.00)
+                $this->objectHasAttribute('name'),
+                $this->objectHasAttribute('description'),
+                $this->objectHasAttribute('canReissue'),
+                $this->objectHasAttribute('decimalPlaces'),
+                $this->objectHasAttribute('issuer'),
+                $this->objectHasAttribute('totalExistentBalance')
             ),
             'Unexpected returned asset info'
         );
+        $this->assertObjectHasAttribute('deviceId', $data->issuer, 'Unexpected returned asset info');
+        $this->assertEquals($data->name, $assetInfo['assetName'], 'Unexpected returned asset info');
+        $this->assertEquals($data->description, 'Asset used for testing purpose', 'Unexpected returned asset info');
+        $this->assertEquals($data->canReissue, true, 'Unexpected returned asset info');
+        $this->assertEquals($data->decimalPlaces, 2, 'Unexpected returned asset info');
+        $this->assertEquals($data->issuer->deviceId, self::$device1['id'], 'Unexpected returned asset info');
+        $this->assertEquals($data->totalExistentBalance, 200.00, 'Unexpected returned asset info');
     }
 
     /**
@@ -887,15 +868,7 @@ class PHPClientTest extends TestCase
         }
 
         $this->assertFalse(is_null($testAsset), 'Test asset not listed as one of owned assets');
-
-        $this->assertThat(
-            $testAsset,
-            $this->attribute(
-                $this->attributeEqualTo('total', 150),
-                'balance'
-            ),
-            'Unexpected balance of owned asset'
-        );
+        $this->assertEquals($testAsset->balance->total, 150, 'Unexpected balance of owned asset');
     }
 
     /**
@@ -922,12 +895,7 @@ class PHPClientTest extends TestCase
         }
 
         $this->assertFalse(is_null($testAsset), 'Test asset not listed as one of issued assets');
-
-        $this->assertThat(
-            $testAsset,
-            $this->attributeEqualTo('totalExistentBalance', 200),
-            'Unexpected balance of issued asset'
-        );
+        $this->assertEquals($testAsset->totalExistentBalance, 200, 'Unexpected balance of issued asset');
     }
 
     /**

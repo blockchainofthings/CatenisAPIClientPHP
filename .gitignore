@@ -1,3 +1,4 @@
 .vscode/
 vendor/
 *.code-workspace
+.phpunit.result.cache
