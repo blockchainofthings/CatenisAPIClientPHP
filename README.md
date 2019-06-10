@@ -2,7 +2,7 @@
 
 This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
 
-This current release (2.1.0) targets version 0.7 of the Catenis Enterprise API and version 0.2 of the WebSocket
+This current release (2.1.1) targets version 0.7 of the Catenis Enterprise API and version 0.2 of the WebSocket
 notification message dispatcher.
 
 ## Installation
@@ -20,7 +20,7 @@ Alternatively, the dependency can be added directly to your `composer.json` file
 ```json
 {
     "require": {
-        "blockchainofthings/catenis-api-client:^1.0"
+        "blockchainofthings/catenis-api-client:^2.1.1"
     }
 }
 ```
