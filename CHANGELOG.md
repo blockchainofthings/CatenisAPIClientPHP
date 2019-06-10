@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.1] - 2019-06-10
+
+### Changes
+- Reference updated version of dependency package ratchet/pawl, which includes a fix to correctly use HTTPS scheme for secure connections.
+
 ## [2.1.0] - 2019-05-31
 
 ### New features
