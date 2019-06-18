@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.2] - 2019-06-18
+
+### Fixes
+- Avoid that JSON payload of API method calls include escaped characters.
+
 ## [2.1.1] - 2019-06-10
 
 ### Changes
