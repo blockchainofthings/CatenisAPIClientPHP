@@ -1002,7 +1002,7 @@ class ApiClient extends ApiPackage
                 $queryParams
             ),
             ['Content-Type' => 'application/json'],
-            json_encode($jsonData)
+            json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         );
 
         // Sign and send the request
@@ -1033,7 +1033,7 @@ class ApiClient extends ApiPackage
                 $queryParams
             ),
             ['Content-Type' => 'application/json'],
-            json_encode($jsonData)
+            json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         );
 
         // Sign and send the request

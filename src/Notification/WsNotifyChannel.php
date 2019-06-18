@@ -98,7 +98,7 @@ class WsNotifyChannel extends ApiPackage implements EventEmitterInterface
                     $authMsgData[strtolower($timestampHeader)] = $wsNotifyReq->getHeaderLine($timestampHeader);
                     $authMsgData['authorization'] = $wsNotifyReq->getHeaderLine('Authorization');
 
-                    $ws->send(json_encode($authMsgData));
+                    $ws->send(json_encode($authMsgData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 }, function (Exception $ex) {
                     // Error opening WebSocket connection.
                     //  Just re-throws exception for now
