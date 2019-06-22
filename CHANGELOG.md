@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.3] - 2019-06-22
+
+### Fixes
+- Avoid that CPU be over allocated (CPU time ~ 100%) when automatically running the promise task queue,
+ which is the default.
+
+### Changes
+- New `pumpInterval` option used to set the interval for periodically running the promise task queue
+ when instantiating the Catenis API PHP client.
+
 ## [2.1.2] - 2019-06-18
 
 ### Fixes
