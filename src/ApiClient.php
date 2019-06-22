@@ -1072,10 +1072,12 @@ class ApiClient extends ApiPackage
      *      'eventLoop' => [EventLoop\LoopInterface] - (optional) Event loop to be used for asynchronous API method
      *                                                  calling mechanism
      *      'pumpTaskQueue' => [bool] - (optional, default: true) Indicates whether to force the promise task queue to
-     *                                   be periodically (on every event loop tick) run. Note that, if this option is
-     *                                   set to false, the user should be responsible to periodically run the task
-     *                                   queue by his/her own. This option is only processed when an event loop is
-     *                                   provided
+     *                                   be periodically run. Note that, if this option is set to false, the user
+     *                                   should be responsible to periodically run the task queue by his/her own. This
+     *                                   option is only processed when an event loop is provided
+     *      'pumpInterval' => [int]   - (optional, default: 10) Time, in milliseconds, specifying the interval for
+     *                                   periodically runing the task queue. This option is only processed when an
+     *                                   event loop is provided and the 'pumpTaskQueue' option is set to true
      * @throws Exception
      */
     public function __construct($deviceId, $apiAccessSecret, array $options = null)
@@ -1154,8 +1156,18 @@ class ApiClient extends ApiPackage
                     }
 
                     if ($pumpTaskQueue) {
+                        $pumpInterval = 0.01;
+
+                        if (isset($options['pumpInterval'])) {
+                            $optPumpInterval = $options['pumpInterval'];
+    
+                            if (is_int($optPumpInterval) && $optPumpInterval > 0) {
+                                $pumpInterval = $optPumpInterval / 1000;
+                            }
+                        }
+    
                         $queue = Promise\queue();
-                        $optEventLoop->addPeriodicTimer(0, [$queue, 'run']);
+                        $optEventLoop->addPeriodicTimer($pumpInterval, [$queue, 'run']);
                     }
                 }
             }

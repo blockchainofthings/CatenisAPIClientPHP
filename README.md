@@ -81,6 +81,15 @@ $ctnApiClient->logMessageAsync('My message')->then(
 );
 ```
 
+> **Note**: for promises to be asynchronously resolved, the promise task queue should be periodically run (i.e.
+ `\GuzzleHttp\Promise\queue()->run()`). By default, the Catenis API PHP client will run the promise task queue
+ every 10 milliseconds. To set a different interval for running the promise task queue, pass the optional
+ parameter ***pumpInterval*** with an integer value corresponding to the desired time in milliseconds when
+ instantiating the Catenis API PHP client (e.g. `'pumpInterval' => 5`). Alternatively, to avoid that the promise
+ task queue be run altogether, pass the optional parameter ***pumpTaskQueue*** set to *false* when instantiating the
+ client (i.e. `'pumpTaskQueue' => false`). In that case, the end user shall be responsible to run the promise
+ task queue.
+
 To force the returned promise to complete and get the data returned by the API method, use its `wait()` method.
 
 ```php
