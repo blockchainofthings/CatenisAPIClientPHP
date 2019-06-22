@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fad6ca5ea1cd92de2d79981fba2fce61",
+    "content-hash": "b971ee2221d80a3339789209ac75e68e",
     "packages": [
         {
             "name": "clue/block-react",
