@@ -15,6 +15,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
@@ -951,7 +952,21 @@ class ApiClient extends ApiPackage
     private function sendGetRequest($methodPath, array $urlParams = null, array $queryParams = null)
     {
         // Prepare request
-        $request = new Request('GET', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams));
+        $headers = [];
+
+        if ($this->useCompression) {
+            $headers['Accept-Encoding'] = 'deflate';
+        }
+
+        $request = new Request(
+            'GET',
+            $this->assembleMethodEndPointUrl(
+                $methodPath,
+                $urlParams,
+                $queryParams
+            ),
+            $headers
+        );
 
         // Sign and send the request
         return $this->sendRequest($request);
@@ -968,11 +983,27 @@ class ApiClient extends ApiPackage
      */
     private function sendGetRequestAsync($methodPath, array $urlParams = null, array $queryParams = null)
     {
-        // Prepare request
-        $request = new Request('GET', $this->assembleMethodEndPointUrl($methodPath, $urlParams, $queryParams));
+        return Promise\task(function () use (&$methodPath, &$urlParams, &$queryParams) {
+            // Prepare request
+            $headers = [];
 
-        // Sign and send the request asynchronously
-        return $this->sendRequestAsync($request);
+            if ($this->useCompression) {
+                $headers['Accept-Encoding'] = 'deflate';
+            }
+
+            $request = new Request(
+                'GET',
+                $this->assembleMethodEndPointUrl(
+                    $methodPath,
+                    $urlParams,
+                    $queryParams
+                ),
+                $headers
+            );
+
+            // Sign and send the request asynchronously
+            return $this->sendRequestAsync($request);
+        });
     }
 
     /**
@@ -994,6 +1025,19 @@ class ApiClient extends ApiPackage
         array $queryParams = null
     ) {
         // Prepare request
+        $headers = ['Content-Type' => 'application/json'];
+        $body = json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if ($this->useCompression) {
+            $headers['Accept-Encoding'] = 'deflate';
+
+            if (extension_loaded('zlib') && strlen($body) >= $this->compressThreshold) {
+                $headers['Content-Encoding'] = 'deflate';
+
+                $body = gzencode($body, -1, FORCE_DEFLATE);
+            }
+        }
+
         $request = new Request(
             'POST',
             $this->assembleMethodEndPointUrl(
@@ -1001,8 +1045,8 @@ class ApiClient extends ApiPackage
                 $urlParams,
                 $queryParams
             ),
-            ['Content-Type' => 'application/json'],
-            json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            $headers,
+            $body
         );
 
         // Sign and send the request
@@ -1025,19 +1069,35 @@ class ApiClient extends ApiPackage
         array $urlParams = null,
         array $queryParams = null
     ) {
-        $request = new Request(
-            'POST',
-            $this->assembleMethodEndPointUrl(
-                $methodPath,
-                $urlParams,
-                $queryParams
-            ),
-            ['Content-Type' => 'application/json'],
-            json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        );
+        return Promise\task(function () use (&$methodPath, &$jsonData, &$urlParams, &$queryParams) {
+            // Prepare request
+            $headers = ['Content-Type' => 'application/json'];
+            $body = json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        // Sign and send the request
-        return $this->sendRequestAsync($request);
+            if ($this->useCompression) {
+                $headers['Accept-Encoding'] = 'deflate';
+
+                if (extension_loaded('zlib') && strlen($body) >= $this->compressThreshold) {
+                    $headers['Content-Encoding'] = 'deflate';
+        
+                    $body = gzencode($body, -1, FORCE_DEFLATE);
+                }
+            }
+
+            $request = new Request(
+                'POST',
+                $this->assembleMethodEndPointUrl(
+                    $methodPath,
+                    $urlParams,
+                    $queryParams
+                ),
+                $headers,
+                $body
+            );
+
+            // Sign and send the request
+            return $this->sendRequestAsync($request);
+        });
     }
 
     /**
@@ -1060,14 +1120,18 @@ class ApiClient extends ApiPackage
      * @param string $deviceId
      * @param string $apiAccessSecret
      * @param array|null $options - A map (associative array) containing the following keys:
-     *      'host' => [string]           - (optional, default: 'catenis.io') Host name (with optional port) of target
-     *                                      Catenis API server
-     *      'environment' => [string]    - (optional, default: 'prod') Environment of target Catenis API server. Valid
-     *                                      values: 'prod', 'sandbox' (or 'beta')
+     *      'host' => [string]           - (optional, default: 'catenis.io') Host name (with optional port) of
+     *                                      target Catenis API server
+     *      'environment' => [string]    - (optional, default: 'prod') Environment of target Catenis API server.
+     *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
      *      'version' => [string]        - (optional, default: '0.6') Version of Catenis API to target
-     *      'timeout' => [float|integer] - (optional, default: 0, no timeout) Timeout, in seconds, to wait for a
+     *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
+     *                                      be compressed
+     *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
+     *                                      to be compressed
+     *      'timeout' => [float|int]     - (optional, default: 0, no timeout) Timeout, in seconds, to wait for a
      *                                      response
      *      'eventLoop' => [EventLoop\LoopInterface] - (optional) Event loop to be used for asynchronous API method
      *                                                  calling mechanism
@@ -1089,6 +1153,9 @@ class ApiClient extends ApiPackage
         $timeout = 0;
         $httpClientHandler = null;
 
+        $this->useCompression = true;
+        $this->compressThreshold = 1024;
+    
         if ($options !== null) {
             if (isset($options['host'])) {
                 $optHost = $options['host'];
@@ -1122,6 +1189,22 @@ class ApiClient extends ApiPackage
                 }
             }
 
+            if (isset($options['useCompression'])) {
+                $optUseCompr = $options['useCompression'];
+
+                if (is_bool($optUseCompr)) {
+                    $this->useCompression = $optUseCompr;
+                }
+            }
+    
+            if (isset($options['compressThreshold'])) {
+                $optComprThrsh = $options['compressThreshold'];
+
+                if (is_int($optComprThrsh) && $optComprThrsh > 0) {
+                    $this->compressThreshold = $optComprThrsh;
+                }
+            }
+    
             if (isset($options['timeout'])) {
                 $optTimeout = $options['timeout'];
 

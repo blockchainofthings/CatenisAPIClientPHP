@@ -46,6 +46,21 @@ $ctnApiClient = new \Catenis\ApiClient(
 );
 ```
 
+#### Constructor options
+
+The following options can be used when instantiating the client:
+
+- **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
+- **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
+- **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
+- **version** \[string\] - (optional, default: <b>*'0.7'*</b>) Version of Catenis API to target.
+- **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
+- **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
+- **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
+- **eventLoop** \[React\EventLoop\LoopInterface\] - (optional) Event loop to be used for asynchronous API method calling mechanism.
+- **pumpTaskQueue** \[boolean] - (optional, default: ***true***) Indicates whether to force the promise task queue to be periodically run.
+- **pumpInterval** \[integer] - (optional, default: ***10***) Time, in milliseconds, specifying the interval for periodically running the task queue.
+
 ### Asynchronous method calls
 
 Each API method has an asynchronous counterpart method that has an *Async* suffix, e.g. `logMessageAsync`.

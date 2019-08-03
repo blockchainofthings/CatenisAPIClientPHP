@@ -16,9 +16,13 @@
          timeoutForLargeTests="60"
          verbose="false">
     <testsuites>
-        <testsuite name="PHP Client">
+        <testsuite name="PHP_Client">
             <file>PHPClientTest.php</file>
             <file>PHPClientAsyncTest.php</file>
+        </testsuite>
+        <testsuite name="PHP_Client_Compression">
+            <file>PHPClientCompressionTest.php</file>
+            <file>PHPClientCompressionAsyncTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
