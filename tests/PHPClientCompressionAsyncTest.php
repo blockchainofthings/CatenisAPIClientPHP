@@ -12,11 +12,13 @@ use Catenis\ApiClient;
 /**
  * Test cases for compression options of Catenis API Client for PHP with asynchronous methods
  */
-class PHPClientAsyncTest extends TestCase
+class PHPClientCompressionAsyncTest extends TestCase
 {
     protected static $device1 = [
         'id' => 'drc3XdxNtzoucpw9xiRp'
     ];
+    protected static $accessKey1 = '544bca61a4116e15fd7bb7c3acb2eef2a1466635446e1aa3077b6a4931be51c4c620b87f1f8fdc3c729'
+        . '1f9dc32eb52f3e008755d3ecdaa57052188702c3fee61';
     protected static $ctnClientAsync1;
     protected static $ctnClientComprAsync1;
     protected static $loop;
@@ -33,13 +35,17 @@ class PHPClientAsyncTest extends TestCase
         }
 
         echo 'Enter device #1 API access key: ';
-        $accessKey1 = rtrim(fgets(STDIN));
+        $key = rtrim(fgets(STDIN));
+
+        if (!empty($key)) {
+            self::$accessKey1 = $key;
+        }
 
         // Instantiate event loop
         self::$loop = EventLoop\Factory::create();
 
         // Instantiate asynchronous Catenis API clients with NO compression
-        self::$ctnClientAsync1 = new ApiClient(self::$device1['id'], $accessKey1, [
+        self::$ctnClientAsync1 = new ApiClient(self::$device1['id'], self::$accessKey1, [
             'host' => 'localhost:3000',
             'secure' => false,
             'useCompression' => false,
@@ -47,7 +53,7 @@ class PHPClientAsyncTest extends TestCase
         ]);
 
         // Instantiate asynchronous Catenis API clients (with compression)
-        self::$ctnClientComprAsync1 = new ApiClient(self::$device1['id'], $accessKey1, [
+        self::$ctnClientComprAsync1 = new ApiClient(self::$device1['id'], self::$accessKey1, [
             'host' => 'localhost:3000',
             'secure' => false,
             'eventLoop' => self::$loop

@@ -20,9 +20,13 @@ class PHPClientAsyncTest extends TestCase
     protected static $device1 = [
         'id' => 'drc3XdxNtzoucpw9xiRp'
     ];
+    protected static $accessKey1 = '544bca61a4116e15fd7bb7c3acb2eef2a1466635446e1aa3077b6a4931be51c4c620b87f1f8fdc3c729'
+        . '1f9dc32eb52f3e008755d3ecdaa57052188702c3fee61';
     protected static $device2 = [
         'id' => 'd8YpQ7jgPBJEkBrnvp58'
     ];
+    protected static $accessKey2 = '61281120a92dc6267af11170d161f64478b0a852f3cce4286b8a1b82afd2de7077472b6f7b93b6d5542'
+        . '95d859815a37cb89f4f875b7aaeb0bd2babd9531c6883';
     protected static $ctnClient1;
     protected static $ctnClient2;
     protected static $ctnClientAsync1;
@@ -43,7 +47,11 @@ class PHPClientAsyncTest extends TestCase
         }
 
         echo 'Enter device #1 API access key: ';
-        $accessKey1 = rtrim(fgets(STDIN));
+        $key = rtrim(fgets(STDIN));
+
+        if (!empty($key)) {
+            self::$accessKey1 = $key;
+        }
 
         echo 'Enter device #2 ID: [' . self::$device2['id'] . '] ';
         $id = rtrim(fgets(STDIN));
@@ -53,15 +61,19 @@ class PHPClientAsyncTest extends TestCase
         }
 
         echo 'Enter device #2 API access key: ';
-        $accessKey2 = rtrim(fgets(STDIN));
+        $key = rtrim(fgets(STDIN));
+
+        if (!empty($key)) {
+            self::$accessKey2 = $key;
+        }
 
         // Instantiate (synchronous) Catenis API clients
-        self::$ctnClient1 = new ApiClient(self::$device1['id'], $accessKey1, [
+        self::$ctnClient1 = new ApiClient(self::$device1['id'], self::$accessKey1, [
             'host' => 'localhost:3000',
             'secure' => false
         ]);
 
-        self::$ctnClient2 = new ApiClient(self::$device2['id'], $accessKey2, [
+        self::$ctnClient2 = new ApiClient(self::$device2['id'], self::$accessKey2, [
             'host' => 'localhost:3000',
             'secure' => false
         ]);
@@ -70,13 +82,13 @@ class PHPClientAsyncTest extends TestCase
         self::$loop = EventLoop\Factory::create();
 
         // Instantiate asynchronous Catenis API clients
-        self::$ctnClientAsync1 = new ApiClient(self::$device1['id'], $accessKey1, [
+        self::$ctnClientAsync1 = new ApiClient(self::$device1['id'], self::$accessKey1, [
             'host' => 'localhost:3000',
             'secure' => false,
             'eventLoop' => self::$loop
         ]);
 
-        self::$ctnClientAsync2 = new ApiClient(self::$device2['id'], $accessKey2, [
+        self::$ctnClientAsync2 = new ApiClient(self::$device2['id'], self::$accessKey2, [
             'host' => 'localhost:3000',
             'secure' => false,
             'eventLoop' => self::$loop
