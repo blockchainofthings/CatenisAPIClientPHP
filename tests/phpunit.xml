@@ -24,5 +24,9 @@
             <file>PHPClientCompressionTest.php</file>
             <file>PHPClientCompressionAsyncTest.php</file>
         </testsuite>
+        <testsuite name="PHP_Client_3.0.0">
+            <file>PHPClientVer3.0.0Test.php</file>
+            <file>PHPClientVer3.0.0AsyncTest.php</file>
+        </testsuite>
     </testsuites>
 </phpunit>

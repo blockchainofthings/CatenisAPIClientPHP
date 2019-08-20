@@ -25,7 +25,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use WyriHaximus\React\GuzzlePsr7\HttpClientAdapter;
 use Catenis\Notification\WsNotifyChannel;
-use Catenis\Internal\ApiVersion;
 use Catenis\Internal\ServiceType;
 use Catenis\Internal\ApiPackage;
 use Catenis\Exception\CatenisException;
@@ -302,27 +301,29 @@ class ApiClient extends ApiPackage
 
     /**
      * Set up request parameters for List Messages API endpoint
-     * @param array|null $options
+     * @param array|null $selector
+     * @param int|null $limit
+     * @param int|null $skip
      * @return array
      */
-    private static function listMessagesRequestParams(array $options = null)
+    private static function listMessagesRequestParams(array $selector = null, $limit = null, $skip = null)
     {
         $queryParams = null;
 
-        if ($options !== null) {
+        if ($selector !== null) {
             $queryParams = [];
 
-            if (isset($options['action'])) {
-                $queryParams['action'] = $options['action'];
+            if (isset($selector['action'])) {
+                $queryParams['action'] = $selector['action'];
             }
 
-            if (isset($options['direction'])) {
-                $queryParams['direction'] = $options['direction'];
+            if (isset($selector['direction'])) {
+                $queryParams['direction'] = $selector['direction'];
             }
 
-            if (isset($options['fromDevices'])) {
+            if (isset($selector['fromDevices'])) {
                 // Process from devices list
-                $fromDevices = $options['fromDevices'];
+                $fromDevices = $selector['fromDevices'];
 
                 if (is_array($fromDevices)) {
                     $deviceIds = [];
@@ -356,9 +357,9 @@ class ApiClient extends ApiPackage
                 }
             }
 
-            if (isset($options['toDevices'])) {
+            if (isset($selector['toDevices'])) {
                 // Process to devices list
-                $toDevices = $options['toDevices'];
+                $toDevices = $selector['toDevices'];
 
                 if (is_array($toDevices)) {
                     $deviceIds = [];
@@ -392,12 +393,12 @@ class ApiClient extends ApiPackage
                 }
             }
 
-            if (isset($options['readState'])) {
-                $queryParams['readState'] = $options['readState'];
+            if (isset($selector['readState'])) {
+                $queryParams['readState'] = $selector['readState'];
             }
 
-            if (isset($options['startDate'])) {
-                $startDate = $options['startDate'];
+            if (isset($selector['startDate'])) {
+                $startDate = $selector['startDate'];
 
                 if (is_string($startDate) && !empty($startDate)) {
                     $queryParams['startDate'] = $startDate;
@@ -406,8 +407,8 @@ class ApiClient extends ApiPackage
                 }
             }
 
-            if (isset($options['endDate'])) {
-                $endDate = $options['endDate'];
+            if (isset($selector['endDate'])) {
+                $endDate = $selector['endDate'];
 
                 if (is_string($endDate) && !empty($endDate)) {
                     $queryParams['endDate'] = $endDate;
@@ -415,6 +416,22 @@ class ApiClient extends ApiPackage
                     $queryParams['endDate'] = $endDate->format(DateTime::ISO8601);
                 }
             }
+        }
+
+        if ($limit !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['limit'] = $limit;
+        }
+
+        if ($skip !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['skip'] = $skip;
         }
 
         return [
@@ -692,10 +709,17 @@ class ApiClient extends ApiPackage
      * @param string $assetId
      * @param string|DateTime|null $startDate
      * @param string|DateTime|null $endDate
+     * @param int|null $limit
+     * @param int|null $skip
      * @return array
      */
-    private static function retrieveAssetIssuanceHistoryRequestParams($assetId, $startDate = null, $endDate = null)
-    {
+    private static function retrieveAssetIssuanceHistoryRequestParams(
+        $assetId,
+        $startDate = null,
+        $endDate = null,
+        $limit = null,
+        $skip = null
+    ) {
         $queryParams = null;
 
         if ($startDate !== null) {
@@ -724,6 +748,22 @@ class ApiClient extends ApiPackage
 
                 $queryParams['endDate'] = $endDate->format(DateTime::ISO8601);
             }
+        }
+
+        if ($limit !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['limit'] = $limit;
+        }
+
+        if ($skip !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['skip'] = $skip;
         }
 
         return [
@@ -1126,7 +1166,7 @@ class ApiClient extends ApiPackage
      *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
-     *      'version' => [string]        - (optional, default: '0.6') Version of Catenis API to target
+     *      'version' => [string]        - (optional, default: '0.8') Version of Catenis API to target
      *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
      *                                      be compressed
      *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
@@ -1149,7 +1189,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.7';
+        $version = '0.8';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -1264,17 +1304,9 @@ class ApiClient extends ApiPackage
         $this->apiAccessSecret = $apiAccessSecret;
         $this->signValidPeriod = new DateInterval(sprintf('P%dD', self::$signValidDays));
 
-        // Determine notification service version to use based on API version
-        $apiVersion = new ApiVersion($version);
-
-        $notifyServiceVer = $apiVersion->gte('0.6') ? ($apiVersion->gte('0.7') ? '0.3' : '0.2') : '0.1';
-        $notifyWSDispatcherVer = '0.2';
-
         $wsUriScheme = $secure ? 'wss://' : 'ws://';
         $wsUriPrefix = $wsUriScheme . $host;
-        $qualifiedNotifyRooPath = self::$apiPath . self::$notifyRootPath;
-        $wsNtfyBaseUriPath = $qualifiedNotifyRooPath . '/' . $notifyServiceVer
-            . (!empty(self::$wsNtfyRootPath) ? '/' : '') . self::$wsNtfyRootPath . '/' . $notifyWSDispatcherVer . '/';
+        $wsNtfyBaseUriPath = $apiBaseUriPath . self::$notifyRootPath . '/' . self::$wsNtfyRootPath . '/';
         $this->rootWsNtfyEndPoint = new Uri($wsUriPrefix . $wsNtfyBaseUriPath);
 
         // Instantiate HTTP client
@@ -1454,7 +1486,7 @@ class ApiClient extends ApiPackage
 
     /**
      * List messages
-     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     * @param array|null $selector - (optional) A map (associative array) containing the following keys:
      *      'action' => [string]              (optional, default: 'any') One of the following values specifying the
      *                                         action originally performed on the messages intended to be retrieved:
      *                                         'log'|'send'|'any'
@@ -1503,14 +1535,17 @@ class ApiClient extends ApiPackage
      *                                         the device that issued the request (action = 'send' and direction =
      *                                         'inbound'). Note: if a string is passed, assumes that it is an ISO8601
      *                                         formatter date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of messages that should be returned
+     * @param int|null $skip - (optional, default: 0) Number of messages that should be skipped (from beginning of list
+     *                          of matching messages) and not returned
      * @return stdClass - An object representing the JSON formatted data returned by the List Messages Catenis API
      *                     endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    public function listMessages(array $options = null)
+    public function listMessages(array $selector = null, $limit = null, $skip = null)
     {
-        return $this->sendGetRequest(...self::listMessagesRequestParams($options));
+        return $this->sendGetRequest(...self::listMessagesRequestParams($selector, $limit, $skip));
     }
 
     /**
@@ -1808,17 +1843,27 @@ class ApiClient extends ApiPackage
      *                                         The returned issuance events must have occurred not after that date/
      *                                         time. Note: if a string is passed, it should be an ISO8601 formatted
      *                                         date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset issuance events that should be returned
+     * @param int|null $skip - (optional, default: 0) Number of asset issuance events that should be skipped (from
+     *                          beginning of list of matching events) and not returned
      * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Asset Issuance
      *                     History API endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    public function retrieveAssetIssuanceHistory($assetId, $startDate = null, $endDate = null)
-    {
+    public function retrieveAssetIssuanceHistory(
+        $assetId,
+        $startDate = null,
+        $endDate = null,
+        $limit = null,
+        $skip = null
+    ) {
         return $this->sendGetRequest(...self::retrieveAssetIssuanceHistoryRequestParams(
             $assetId,
             $startDate,
-            $endDate
+            $endDate,
+            $limit,
+            $skip
         ));
     }
 
@@ -1998,7 +2043,7 @@ class ApiClient extends ApiPackage
 
     /**
      * List messages asynchronously
-     * @param array|null $options - A map (associative array) containing the following keys:
+     * @param array|null $selector - A map (associative array) containing the following keys:
      *      'action' => [string]                  (optional, default: 'any') - One of the following values specifying
      *                                             the action originally performed on the messages intended to be
      *                                             retrieved: 'log'|'send'|'any'
@@ -2047,11 +2092,14 @@ class ApiClient extends ApiPackage
      *                                             received, in case of messages sent to the device that issued the
      *                                             request (action = 'send' and direction = 'inbound'). Note: if a
      *                                             string is passed, it should be an ISO8601 formatter date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of messages that should be returned
+     * @param int|null $skip - (optional, default: 0) Number of messages that should be skipped (from beginning of list
+     *                          of matching messages) and not returned
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    public function listMessagesAsync(array $options = null)
+    public function listMessagesAsync(array $selector = null, $limit = null, $skip = null)
     {
-        return $this->sendGetRequestAsync(...self::listMessagesRequestParams($options));
+        return $this->sendGetRequestAsync(...self::listMessagesRequestParams($selector, $limit, $skip));
     }
 
     /**
@@ -2312,14 +2360,24 @@ class ApiClient extends ApiPackage
      *                                         The returned issuance events must have occurred not after that date/
      *                                         time. Note: if a string is passed, it should be an ISO8601 formatted
      *                                         date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset issuance events that should be returned
+     * @param int|null $skip - (optional, default: 0) Number of asset issuance events that should be skipped (from
+     *                          beginning of list of matching events) and not returned
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    public function retrieveAssetIssuanceHistoryAsync($assetId, $startDate = null, $endDate = null)
-    {
+    public function retrieveAssetIssuanceHistoryAsync(
+        $assetId,
+        $startDate = null,
+        $endDate = null,
+        $limit = null,
+        $skip = null
+    ) {
         return $this->sendGetRequestAsync(...self::retrieveAssetIssuanceHistoryRequestParams(
             $assetId,
             $startDate,
-            $endDate
+            $endDate,
+            $limit,
+            $skip
         ));
     }
 

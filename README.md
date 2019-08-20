@@ -53,7 +53,7 @@ The following options can be used when instantiating the client:
 - **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[string\] - (optional, default: <b>*'0.7'*</b>) Version of Catenis API to target.
+- **version** \[string\] - (optional, default: <b>*'0.8'*</b>) Version of Catenis API to target.
 - **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
 - **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 - **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
@@ -508,14 +508,14 @@ try {
         'direction' => 'inbound',
         'readState' => 'unread',
         'startDate' => new \DateTime('20170101T000000Z')
-    ]);
+    ], 200, 0);
 
     // Process returned data
     if ($data->msgCount > 0) {
         echo 'Returned messages: ' . print_r($data->messages, true);
         
-        if ($data->countExceeded) {
-            echo 'Warning: not all messages fulfilling search criteria have been returned!' . PHP_EOL;
+        if ($data->hasMore) {
+            echo 'Not all messages have been returned' . PHP_EOL;
         }
     }
 } catch (\Catenis\Exception\CatenisException $ex) {
@@ -523,12 +523,14 @@ try {
 }
 ```
 
-> **Note**: the fields of the *options* parameter of the *listMessages* method are slightly different than the ones
- taken by the List Messages Catenis API method. In particular, fields `fromDeviceIds` and `fromDeviceProdUniqueIds`,
- and fields `toDeviceIds` and `toDeviceProdUniqueIds` are replaced by fields `fromDevices` and `toDevices`,
- respectively. Those fields take an indexed array of device ID associative arrays, which is the same type of associative
- array taken by the first parameter (`targetDevice`) of the *sendMessage* method. Also, the date fields, `startDate` and
- `endDate`, accept not only strings containing ISO8601 formatted dates/times but also *DateTime* objects.
+> **Note**: the parameters taken by the *listMessages* method do not exactly match the parameters taken by the List
+ Messages Catenis API method. Most of the parameters, with the exception of the last two (`limit` and `skip`), are
+ mapped to keys of the first parameter (`selector`) of the *listMessages* method with a few singularities: parameters
+ `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
+ keys `fromDevices` and `toDevices`, respectively. Those keys accept for value an indexed array of device ID associative arrays,
+ which is the same type of associative array taken by the first parameter (`targetDevice`) of the *sendMessage* method.
+ Also, the date keys, `startDate` and `endDate`, accept not only strings containing ISO8601 formatted dates/times for values
+ but also *Date* objects.
 
 ### Issuing an amount of a new asset
 
@@ -654,7 +656,7 @@ try {
 
 ```php
 try {
-    $data = $ctnApiClient->retrieveAssetIssuanceHistory($assetId, new \DateTime('20170101T000000Z'), null);
+    $data = $ctnApiClient->retrieveAssetIssuanceHistory($assetId, new \DateTime('20170101T000000Z'), null, 200, 0);
     
     // Process returned data
     foreach ($data->issuanceEvents as $idx => $issuanceEvent) {
@@ -664,9 +666,8 @@ try {
         echo '  - date of issuance: ' . $issuanceEvent->date . PHP_EOL;
     }
 
-    if ($data->countExceeded) {
-        echo 'Warning: not all asset issuance events that took place within the specified time frame have been'
-            . ' returned!' . PHP_EOL;
+    if ($data->hasMore) {
+        echo 'Not all asset issuance events have been returned' . PHP_EOL;
     }
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
@@ -674,7 +675,7 @@ try {
 ```
 
 > **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different than the ones taken by
- the Retrieve Asset Issuance History Catenis API method. In particular, the date fields, `startDate` and `endDate`,
+ the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
  accept not only strings containing ISO8601 formatted dates/times but also *DateTime* objects.
 
 ### Listing devices that currently hold any amount of a given asset
