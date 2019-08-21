@@ -8,21 +8,52 @@ This current release (3.0.0) targets version 0.8 of the Catenis Enterprise API.
 
 The recommended way to install the Catenis API PHP client is using [Composer](https://getcomposer.org).
 
-To add Catenis API Client as a dependency to you project, issue the following command:
+To add Catenis API Client as a dependency to your project, follow these steps:
 
-```shell
-composer require blockchainofthings/catenis-api-client
+1. Add the following repository entries to your `composer.json` file:
+
+```json
+{
+  "repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/claudiosdc/react-guzzle-psr7.git"
+    },
+    {
+        "type": "vcs",
+        "url": "https://github.com/claudiosdc/react-guzzle-http-client.git"
+    },
+    {
+        "type": "vcs",
+        "url": "https://github.com/claudiosdc/reactphp-buzz.git"
+    }
+  ]
+}
 ```
 
-Alternatively, the dependency can be added directly to your `composer.json` file, like this:
+2. Then add the required dependencies by either:
+
+Issuing the following command:
+
+```shell
+composer require blockchainofthings/catenis-api-client:~3.0 wyrihaximus/react-guzzle-psr7:dev-decode-content wyrihaximus/react-guzzle-http-client:dev-decode-content clue/buzz-react:dev-decode-content
+```
+
+Or editing the `composer.json` file directly:
 
 ```json
 {
     "require": {
-        "blockchainofthings/catenis-api-client": "~3.0.0"
+        "blockchainofthings/catenis-api-client": "~3.0",
+        "wyrihaximus/react-guzzle-psr7": "dev-decode-content",
+        "wyrihaximus/react-guzzle-http-client": "dev-decode-content",
+        "clue/buzz-react": "dev-decode-content"
     }
 }
 ```
+
+> **Note**: normally, only the blockchainofthings/catenis-api-client package would need to be listed. However, since this release
+ of the Catenis API library depends on special patched versions of the other three packages, they also need to be listed here.
 
 ## Usage
 
