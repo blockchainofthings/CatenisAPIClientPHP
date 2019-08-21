@@ -22,7 +22,7 @@
         "ext-json": "*",
         "guzzlehttp/guzzle": "~6.0",
         "wyrihaximus/react-guzzle-psr7": "dev-decode-content",
-        "evenement/evenement": "^2.1",
+        "evenement/evenement": "^3.0 || ^2.0",
         "ratchet/pawl": "^0.3.4"
     },
     "require-dev": {
