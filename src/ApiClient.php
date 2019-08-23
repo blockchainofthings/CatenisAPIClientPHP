@@ -937,6 +937,12 @@ class ApiClient extends ApiPackage
 
         if ($queryParams !== null) {
             foreach ($queryParams as $key => $value) {
+                // Make sure that false boolean values are shown on the query string (otherwise they get converted
+                //  to an empty string and no value is shown but only the key followed by an equal sign)
+                if (is_bool($value) && !$value) {
+                    $value = 0;
+                }
+
                 $serviceEndPointUrl = Uri::withQueryValue($serviceEndPointUrl, $key, $value);
             }
         }
