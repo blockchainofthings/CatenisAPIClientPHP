@@ -22,15 +22,15 @@
         "guzzlehttp/guzzle": "~6.0",
         "wyrihaximus/react-guzzle-psr7": "dev-decode-content",
         "evenement/evenement": "^3.0 || ^2.0",
-        "ratchet/pawl": "^0.3.4"
+        "ratchet/pawl": "^0.3.4",
+        "wyrihaximus/react-guzzle-http-client": "dev-decode-content",
+        "clue/buzz-react": "dev-decode-content"
     },
     "require-dev": {
         "react/event-loop": "^1.0",
         "squizlabs/php_codesniffer": "3.*",
         "phpunit/php-invoker": "^2.0",
-        "phpunit/phpunit": "^8",
-        "wyrihaximus/react-guzzle-http-client": "dev-decode-content",
-        "clue/buzz-react": "dev-decode-content"
+        "phpunit/phpunit": "^8"
     },
     "license": "MIT",
     "authors": [
