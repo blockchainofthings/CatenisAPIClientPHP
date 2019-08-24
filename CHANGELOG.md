@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.1] - 2019-08-24
+
+### Fixes
+- Query string parameters of type boolean with a false value is correctly formatted.
+
 ## [3.0.0] - 2019-08-20
 
 ### Breaking changes
