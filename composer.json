@@ -1,7 +1,6 @@
 {
     "name": "blockchainofthings/catenis-api-client",
     "description": "Catenis Enterprise API client library for PHP",
-    "version": "3.0.0",
     "type": "library",
     "repositories": [
         {
