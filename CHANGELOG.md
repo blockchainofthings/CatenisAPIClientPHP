@@ -45,10 +45,11 @@
 ## [2.0.0] - 2019-05-02
 
 ### Breaking changes
-- Changed interface of methods *sendMessage* and *sendMessageAsync*: parameters `message` and `targetDevice` have swapped positions.
+- Changed interface of method *sendMessage*: parameters `message` and `targetDevice` have swapped positions.
+- The associative array returned from a successful call to the *readMessage* method has a different structure.
 
 ### New features
-- Added support for version 0.7 of the Catenis Enterprise API.
+- Added support for version 0.7 of the Catenis Enterprise API: log, send and read message in chunks.
 
 ## [1.0.3] - 2019-01-02
 
