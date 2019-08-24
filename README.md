@@ -2,7 +2,7 @@
 
 This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
 
-This current release (3.0.0) targets version 0.8 of the Catenis Enterprise API.
+This current release (3.0.1) targets version 0.8 of the Catenis Enterprise API.
 
 ## Installation
 
