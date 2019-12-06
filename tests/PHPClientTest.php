@@ -567,8 +567,9 @@ class PHPClientTest extends TestCase
         });
         
         $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$messageId) {
-            if (!is_null($messageId)) {
-                // Notification received. Get returned data, close notification channel, and stop event loop
+            if ($retVal->messageId == $messageId) {
+                // Notification (for the expected message) received.
+                //  Get returned data, close notification channel, and stop event loop
                 $data = $retVal;
                 $wsNtfyChannel->close();
                 self::$loop->stop();
@@ -650,11 +651,14 @@ class PHPClientTest extends TestCase
             }
         });
         
-        $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel) {
-            // Notification received. Get returned data, close notification channel, and stop event loop
-            $data = $retVal;
-            $wsNtfyChannel->close();
-            self::$loop->stop();
+        $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$ephemeralMessageId) {
+            if ($retVal->ephemeralMessageId == $ephemeralMessageId) {
+                // Notification (for the expected message) received.
+                //  Get returned data, close notification channel, and stop event loop
+                $data = $retVal;
+                $wsNtfyChannel->close();
+                self::$loop->stop();
+            }
         });
     
         $wsNtfyChannel->open()->then(

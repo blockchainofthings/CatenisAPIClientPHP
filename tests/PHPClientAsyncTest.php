@@ -958,8 +958,9 @@ class PHPClientAsyncTest extends TestCase
         });
         
         $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$messageId) {
-            if (!is_null($messageId)) {
-                // Notification received. Get returned data, close notification channel, and stop event loop
+            if ($retVal->messageId == $messageId) {
+                // Notification (for the expected message) received.
+                //  Get returned data, close notification channel, and stop event loop
                 $data = $retVal;
                 $wsNtfyChannel->close();
                 self::$loop->stop();
@@ -1008,8 +1009,6 @@ class PHPClientAsyncTest extends TestCase
         $error = null;
         $message = null;
         $ephemeralMessageId = null;
-        $notificationReceived = false;
-        $messageLogged = false;
         
         $wsNtfyChannel->on('error', function ($err) use (&$error) {
             // Get error and stop event loop
@@ -1025,13 +1024,7 @@ class PHPClientAsyncTest extends TestCase
             }
         });
         
-        $wsNtfyChannel->on('open', function () use (
-            &$message,
-            &$ephemeralMessageId,
-            &$error,
-            &$notificationReceived,
-            &$messageLogged
-        ) {
+        $wsNtfyChannel->on('open', function () use (&$message, &$ephemeralMessageId, &$error) {
             // WebSocket notification channel successfully open and ready to send notifications.
             //  Asynchronously log a message
             $message = 'Test message #' . rand();
@@ -1039,14 +1032,9 @@ class PHPClientAsyncTest extends TestCase
             self::$ctnClientAsync1->logMessageAsync($message, [
                 'async' => true
             ])->then(
-                function ($data2) use (&$ephemeralMessageId, &$notificationReceived, &$messageLogged) {
+                function ($data2) use (&$ephemeralMessageId) {
                     // Message successfully logged. Save returned provisional message ID
                     $ephemeralMessageId = $data2->provisionalMessageId;
-                    $messageLogged = true;
-
-                    if ($notificationReceived) {
-                        self::$loop->stop();
-                    }
                 },
                 function ($ex) use (&$error) {
                     // Get error and stop event loop
@@ -1056,21 +1044,14 @@ class PHPClientAsyncTest extends TestCase
             );
         });
         
-        $wsNtfyChannel->on('notify', function ($retVal) use (
-            &$data,
-            &$wsNtfyChannel,
-            &$notificationReceived,
-            &$messageLogged
-        ) {
-            // Notification received. Get returned data, close notification channel, and stop event loop
-            $data = $retVal;
-            $notificationReceived = true;
-
-            if ($messageLogged) {
+        $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$ephemeralMessageId) {
+            if ($retVal->ephemeralMessageId == $ephemeralMessageId) {
+                // Notification (for the expected message) received.
+                //  Get returned data, close notification channel, and stop event loop
+                $data = $retVal;
+                $wsNtfyChannel->close();
                 self::$loop->stop();
             }
-
-            $wsNtfyChannel->close();
         });
 
         $wsNtfyChannel->open()->then(
