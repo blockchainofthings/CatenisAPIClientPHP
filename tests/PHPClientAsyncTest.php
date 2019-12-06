@@ -20,13 +20,13 @@ class PHPClientAsyncTest extends TestCase
     protected static $device1 = [
         'id' => 'drc3XdxNtzoucpw9xiRp'
     ];
-    protected static $accessKey1 = '544bca61a4116e15fd7bb7c3acb2eef2a1466635446e1aa3077b6a4931be51c4c620b87f1f8fdc3c729'
-        . '1f9dc32eb52f3e008755d3ecdaa57052188702c3fee61';
+    protected static $accessKey1 = '4c1749c8e86f65e0a73e5fb19f2aa9e74a716bc22d7956bf3072b4bc3fbfe2a0d138ad0d4bcfee251e'
+        . '4e5f54d6e92b8fd4eb36958a7aeaeeb51e8d2fcc4552c3';
     protected static $device2 = [
         'id' => 'd8YpQ7jgPBJEkBrnvp58'
     ];
-    protected static $accessKey2 = '61281120a92dc6267af11170d161f64478b0a852f3cce4286b8a1b82afd2de7077472b6f7b93b6d5542'
-        . '95d859815a37cb89f4f875b7aaeb0bd2babd9531c6883';
+    protected static $accessKey2 = '267a687115b9752f2eec5be849b570b29133528f928868d811bad5e48e97a1d62d432bab44803586b2'
+        . 'ac35002ec6f0eeaa98bec79b64f2f69b9cb0935b4df2c4';
     protected static $ctnClient1;
     protected static $ctnClient2;
     protected static $ctnClientAsync1;

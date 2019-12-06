@@ -16,8 +16,8 @@ class PHPClientCompressionTest extends TestCase
     protected static $device1 = [
         'id' => 'drc3XdxNtzoucpw9xiRp'
     ];
-    protected static $accessKey1 = '544bca61a4116e15fd7bb7c3acb2eef2a1466635446e1aa3077b6a4931be51c4c620b87f1f8fdc3c729'
-        . '1f9dc32eb52f3e008755d3ecdaa57052188702c3fee61';
+    protected static $accessKey1 = '4c1749c8e86f65e0a73e5fb19f2aa9e74a716bc22d7956bf3072b4bc3fbfe2a0d138ad0d4bcfee251e'
+        . '4e5f54d6e92b8fd4eb36958a7aeaeeb51e8d2fcc4552c3';
     protected static $ctnClient1;
     protected static $ctnClientCompr1;
 
