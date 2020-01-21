@@ -939,15 +939,24 @@ class PHPClientAsyncTest extends TestCase
             }
         });
         
-        $wsNtfyChannel->on('open', function () use (&$message, &$messageId, &$error) {
+        $wsNtfyChannel->on('open', function () use (&$message, &$messageId, &$error, &$data, &$wsNtfyChannel) {
             // WebSocket notification channel successfully open and ready to send notifications.
             //  Send message from device #1 to device #2
             $message = 'Test message #' . rand();
 
             self::$ctnClientAsync1->sendMessageAsync($message, self::$device2)->then(
-                function ($data2) use (&$messageId) {
+                function ($data2) use (&$messageId, &$data, &$wsNtfyChannel) {
                     // Message successfully sent. Save message ID
                     $messageId = $data2->messageId;
+
+                    if (!is_null($data)) {
+                        // Notification already received. Check if it was for this message
+                        if ($data->messageId == $messageId) {
+                            // If so, close notification channel, and stop event loop
+                            $wsNtfyChannel->close();
+                            self::$loop->stop();
+                        }
+                    }
                 },
                 function ($ex) use (&$error) {
                     // Get error and stop event loop
@@ -958,12 +967,18 @@ class PHPClientAsyncTest extends TestCase
         });
         
         $wsNtfyChannel->on('notify', function ($retVal) use (&$data, &$wsNtfyChannel, &$messageId) {
-            if ($retVal->messageId == $messageId) {
-                // Notification (for the expected message) received.
-                //  Get returned data, close notification channel, and stop event loop
+            // Notification received
+            if (!is_null($messageId)) {
+                // ID of sent message already returned. Check if this notification is for the correct message
+                if ($retVal->messageId == $messageId) {
+                    // If so, save returned data, close notification channel, and stop event loop
+                    $data = $retVal;
+                    $wsNtfyChannel->close();
+                    self::$loop->stop();
+                }
+            } else {
+                // ID of sent message not yet returned. Just save notification data
                 $data = $retVal;
-                $wsNtfyChannel->close();
-                self::$loop->stop();
             }
         });
     
