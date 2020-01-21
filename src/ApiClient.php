@@ -1172,7 +1172,7 @@ class ApiClient extends ApiPackage
      *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
-     *      'version' => [string]        - (optional, default: '0.8') Version of Catenis API to target
+     *      'version' => [string]        - (optional, default: '0.9') Version of Catenis API to target
      *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
      *                                      be compressed
      *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
@@ -1195,7 +1195,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.8';
+        $version = '0.9';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -1350,6 +1350,13 @@ class ApiClient extends ApiPackage
      *                                  storing. NOTE that, when message is passed in chunks, this option is only taken
      *                                  into consideration (and thus only needs to be passed) for the final message
      *                                  data chunk, and it shall be applied to the message's contents as a whole
+     *      'offChain' => [bool],      (optional, default: true) Indicates whether message should be processed as a
+     *                                  Catenis off-chain message. Catenis off-chain messages are stored on the
+     *                                  external storage repository and only later its reference is settled to the
+     *                                  blockchain along with references of other off-chain messages. NOTE that, when
+     *                                  message is passed in chunks, this option is only taken into consideration (and
+     *                                  thus only needs to be passed) for the final message data chunk, and it shall be
+     *                                  applied to the message's contents as a whole
      *      'storage' => [string],     (optional, default: 'auto') One of the following values identifying where the
      *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
      *                                  is passed in chunks, this option is only taken into consideration (and thus only
@@ -1398,6 +1405,13 @@ class ApiClient extends ApiPackage
      *                                     only taken into consideration (and thus only needs to be passed) for the
      *                                     final message data chunk, and it shall be applied to the message's contents
      *                                     as a whole
+     *      'offChain' => [bool],         (optional, default: true) Indicates whether message should be processed as a
+     *                                     Catenis off-chain message. Catenis off-chain messages are stored on the
+     *                                     external storage repository and only later its reference is settled to the
+     *                                     blockchain along with references of other off-chain messages. NOTE that, when
+     *                                     message is passed in chunks, this option is only taken into consideration
+     *                                     (and thus only needs to be passed) for the final message data chunk, and it
+     *                                     shall be applied to the message's contents as a whole
      *      'storage' => [string],        (optional, default: 'auto') One of the following values identifying where the
      *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
      *                                     message is passed in chunks, this option is only taken into consideration
@@ -1922,6 +1936,13 @@ class ApiClient extends ApiPackage
      *                                  storing. NOTE that, when message is passed in chunks, this option is only taken
      *                                  into consideration (and thus only needs to be passed) for the final message
      *                                  data chunk, and it shall be applied to the message's contents as a whole
+     *      'offChain' => [bool],      (optional, default: true) Indicates whether message should be processed as a
+     *                                  Catenis off-chain message. Catenis off-chain messages are stored on the
+     *                                  external storage repository and only later its reference is settled to the
+     *                                  blockchain along with references of other off-chain messages. NOTE that, when
+     *                                  message is passed in chunks, this option is only taken into consideration (and
+     *                                  thus only needs to be passed) for the final message data chunk, and it shall be
+     *                                  applied to the message's contents as a whole
      *      'storage' => [string],     (optional, default: 'auto') One of the following values identifying where the
      *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
      *                                  is passed in chunks, this option is only taken into consideration (and thus only
@@ -1967,6 +1988,13 @@ class ApiClient extends ApiPackage
      *                                     only taken into consideration (and thus only needs to be passed) for the
      *                                     final message data chunk, and it shall be applied to the message's contents
      *                                     as a whole
+     *      'offChain' => [bool],         (optional, default: true) Indicates whether message should be processed as a
+     *                                     Catenis off-chain message. Catenis off-chain messages are stored on the
+     *                                     external storage repository and only later its reference is settled to the
+     *                                     blockchain along with references of other off-chain messages. NOTE that, when
+     *                                     message is passed in chunks, this option is only taken into consideration
+     *                                     (and thus only needs to be passed) for the final message data chunk, and it
+     *                                     shall be applied to the message's contents as a whole
      *      'storage' => [string],        (optional, default: 'auto') One of the following values identifying where the
      *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
      *                                     message is passed in chunks, this option is only taken into consideration

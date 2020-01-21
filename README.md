@@ -83,7 +83,7 @@ The following options can be used when instantiating the client:
 - **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[string\] - (optional, default: <b>*'0.8'*</b>) Version of Catenis API to target.
+- **version** \[string\] - (optional, default: <b>*'0.9'*</b>) Version of Catenis API to target.
 - **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
 - **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 - **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
@@ -170,6 +170,7 @@ try {
     $data = $ctnApiClient->logMessage('My message', [
         'encoding' => 'utf8',
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto'
     ]);
 
@@ -210,6 +211,7 @@ try {
         'continuationToken' => $continuationToken
     ], [
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto'
     ]);
 
@@ -226,6 +228,7 @@ try {
     $data = $ctnApiClient->logMessage('My message', [
         'encoding' => 'utf8',
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto',
         'async' => true
     ]);
@@ -274,6 +277,7 @@ try {
     ], [
         'encoding' => 'utf8',
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto',
         'readConfirmation' => true
     ]);
@@ -321,6 +325,7 @@ try {
         'isProdUniqueId' => false
     ], [
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto',
         'readConfirmation' => true
     ]);
@@ -341,6 +346,7 @@ try {
     ], [
         'encoding' => 'utf8',
         'encrypt' => true,
+        'offChain' => true,
         'storage' => 'auto',
         'readConfirmation' => true,
         'async' => true
@@ -1043,4 +1049,4 @@ For further information on the Catenis Enterprise API, please reference the [Cat
 
 This Node.js module is released under the [MIT License](LICENSE). Feel free to fork, and modify!
 
-Copyright © 2019, Blockchain of Things Inc.
+Copyright © 2020, Blockchain of Things Inc.
