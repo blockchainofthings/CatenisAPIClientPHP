@@ -297,7 +297,7 @@ class PHPClientTest extends TestCase
     {
         $data = self::$ctnClient1->retrieveMessageContainer($messageInfo['messageId']);
 
-        $this->assertObjectHasAttribute('blockchain', $data, 'Inconsistent data returned for message container');
+        $this->assertObjectHasAttribute('offChain', $data, 'Inconsistent data returned for message container');
     }
 
     /**

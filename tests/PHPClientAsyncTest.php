@@ -507,7 +507,7 @@ class PHPClientAsyncTest extends TestCase
 
         // Process result
         if (!is_null($data)) {
-            $this->assertObjectHasAttribute('blockchain', $data, 'Inconsistent data returned for message container');
+            $this->assertObjectHasAttribute('offChain', $data, 'Inconsistent data returned for message container');
         } else {
             throw $error;
         }
