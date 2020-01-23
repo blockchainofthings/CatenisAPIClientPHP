@@ -11,9 +11,9 @@ use React\EventLoop;
 use Catenis\ApiClient;
 
 /**
- * Test cases for version 4.0.0 of Catenis API Client for PHP asynchronous methods
+ * Test cases for version 4.0.1 of Catenis API Client for PHP asynchronous methods
  */
-class PHPClientVer4d0d0AsyncTest extends TestCase
+class PHPClientVer4d0d1AsyncTest extends TestCase
 {
     protected static $device1 = [
         'id' => 'drc3XdxNtzoucpw9xiRp'
@@ -31,7 +31,7 @@ class PHPClientVer4d0d0AsyncTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        echo "\nPHPClientVer4d0d0AsyncTest test class\n";
+        echo "\nPHPClientVer4d0d1AsyncTest test class\n";
 
         echo 'Enter device #1 ID: [' . self::$device1['id'] . '] ';
         $id = rtrim(fgets(STDIN));

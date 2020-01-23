@@ -28,9 +28,9 @@
             <file>PHPClientVer3.0.0Test.php</file>
             <file>PHPClientVer3.0.0AsyncTest.php</file>
         </testsuite>
-        <testsuite name="PHP_Client_4.0.0">
-            <file>PHPClientVer4.0.0Test.php</file>
-            <file>PHPClientVer4.0.0AsyncTest.php</file>
+        <testsuite name="PHP_Client_4.0.1">
+            <file>PHPClientVer4.0.1Test.php</file>
+            <file>PHPClientVer4.0.1AsyncTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
