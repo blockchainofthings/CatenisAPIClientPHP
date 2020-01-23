@@ -1361,7 +1361,9 @@ class ApiClient extends ApiPackage
      *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
      *                                  is passed in chunks, this option is only taken into consideration (and thus only
      *                                  needs to be passed) for the final message data chunk, and it shall be applied to
-     *                                  the message's contents as a whole
+     *                                  the message's contents as a whole. ALSO note that, when the offChain option is
+     *                                  set to true, this option's value is disregarded and the processing is done as
+     *                                  if the value "external" was passed
      *      'async' => [bool]          (optional, default: false) - Indicates whether processing (storage of message to
      *                                  the blockchain) should be done asynchronously. If set to true, a provisional
      *                                  message ID is returned, which should be used to retrieve the processing outcome
@@ -1416,7 +1418,9 @@ class ApiClient extends ApiPackage
      *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
      *                                     message is passed in chunks, this option is only taken into consideration
      *                                     (and thus only needs to be passed) for the final message data chunk, and it
-     *                                     shall be applied to the message's contents as a whole
+     *                                     shall be applied to the message's contents as a whole. ALSO note that, when
+     *                                     the offChain option is set to true, this option's value is disregarded and
+     *                                     the processing is done as if the value "external" was passed
      *      'readConfirmation' => [bool], (optional, default: false) Indicates whether message should be sent with read
      *                                     confirmation enabled. NOTE that, when message is passed in chunks, this
      *                                     option is only taken into consideration (and thus only needs to be passed)
@@ -1947,7 +1951,9 @@ class ApiClient extends ApiPackage
      *                                  message should be stored: 'auto'|'embedded'|'external'. NOTE that, when message
      *                                  is passed in chunks, this option is only taken into consideration (and thus only
      *                                  needs to be passed) for the final message data chunk, and it shall be applied to
-     *                                  the message's contents as a whole
+     *                                  the message's contents as a whole. ALSO note that, when the offChain option is
+     *                                  set to true, this option's value is disregarded and the processing is done as
+     *                                  if the value "external" was passed
      *      'async' => [bool]          (optional, default: false) - Indicates whether processing (storage of message to
      *                                  the blockchain) should be done asynchronously. If set to true, a provisional
      *                                  message ID is returned, which should be used to retrieve the processing outcome
@@ -1999,7 +2005,9 @@ class ApiClient extends ApiPackage
      *                                     message should be stored: 'auto'|'embedded'|'external'. NOTE that, when
      *                                     message is passed in chunks, this option is only taken into consideration
      *                                     (and thus only needs to be passed) for the final message data chunk, and it
-     *                                     shall be applied to the message's contents as a whole
+     *                                     shall be applied to the message's contents as a whole. ALSO note that, when
+     *                                     the offChain option is set to true, this option's value is disregarded and
+     *                                     the processing is done as if the value "external" was passed
      *      'readConfirmation' => [bool], (optional, default: false) Indicates whether message should be sent with read
      *                                     confirmation enabled. NOTE that, when message is passed in chunks, this
      *                                     option is only taken into consideration (and thus only needs to be passed)
