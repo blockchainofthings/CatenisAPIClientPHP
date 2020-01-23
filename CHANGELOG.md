@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.0.1] - 2020-01-23
+
+### Changes
+- Add missing information to header comment of logMessage() and readMessage() methods and their asynchronous counterpart.
+- Update README file to fix sample code for retrieving information about a message's container.
+
 ## [4.0.0] - 2020-01-21
 
 ### Breaking changes
