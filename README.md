@@ -495,10 +495,16 @@ try {
     $data = $ctnApiClient->retrieveMessageContainer($messageId);
 
     // Process returned data
-    echo 'ID of blockchain transaction containing the message: ' . $data->blockchain->txid . PHP_EOL;
+    if (isset($data->offChain)) {
+        echo 'IPFS CID of Catenis off-chain message envelope: ' . $data->offChain->cid . PHP_EOL;
+    }
+    
+    if (isset($data->blockchain)) {
+        echo 'ID of blockchain transaction containing the message: ' . $data->blockchain->txid . PHP_EOL;
+    }
 
     if (isset($data->externalStorage)) {
-        echo 'IPFS reference to message: ' . $data->externalStorage->ipfs;
+        echo 'IPFS reference to message: ' . $data->externalStorage->ipfs . PHP_EOL;
     }
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
