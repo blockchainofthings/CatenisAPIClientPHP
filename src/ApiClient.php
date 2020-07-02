@@ -286,6 +286,31 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Set up request parameters for Retrieve Message Origin API endpoint
+     * @param string $messageId
+     * @param string|null $msgToSign
+     * @return array
+     */
+    private static function retrieveMessageOriginRequestParams($messageId, $msgToSign = null)
+    {
+        $queryParams = null;
+
+        if ($msgToSign !== null) {
+            $queryParams = [
+                'msgToSign' => $msgToSign
+            ];
+        }
+
+        return [
+            'messages/:messageId/origin', [
+                'messageId' => $messageId
+            ],
+            $queryParams,
+            true
+        ];
+    }
+
+    /**
      * Set up request parameters for Retrieve Message Progress API endpoint
      * @param string $messageId
      * @return array
@@ -867,16 +892,20 @@ class ApiClient extends ApiPackage
     /**
      * Sends a request to an API endpoint
      * @param RequestInterface $request - The request to send
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    private function sendRequest(RequestInterface $request)
+    private function sendRequest(RequestInterface $request, $doNotSign = false)
     {
         try {
-            // Sign and send request
-            $this->signRequest($request);
+            if (!$doNotSign) {
+                // Sign request
+                $this->signRequest($request);
+            }
 
+            // Send request
             $response = $this->httpClient->send($request);
 
             // Process response
@@ -893,15 +922,19 @@ class ApiClient extends ApiPackage
     /**
      * Sends a request to an API endpoint asynchronously
      * @param RequestInterface $request - The request to send
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    private function sendRequestAsync(RequestInterface $request)
+    private function sendRequestAsync(RequestInterface $request, $doNotSign = false)
     {
-        return Promise\task(function () use (&$request) {
+        return Promise\task(function () use (&$request, $doNotSign) {
             try {
-                // Sign and send request
-                $this->signRequest($request);
+                if (!$doNotSign) {
+                    // Sign request
+                    $this->signRequest($request);
+                }
 
+                // Send request
                 return $this->httpClient->sendAsync($request)->then(
                     function (ResponseInterface $response) {
                         // Process response
@@ -991,11 +1024,12 @@ class ApiClient extends ApiPackage
      *      that should be substituted and the values the values that should be used for the substitution
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
      */
-    private function sendGetRequest($methodPath, array $urlParams = null, array $queryParams = null)
+    private function sendGetRequest($methodPath, array $urlParams = null, array $queryParams = null, $doNotSign = false)
     {
         // Prepare request
         $headers = [];
@@ -1015,7 +1049,7 @@ class ApiClient extends ApiPackage
         );
 
         // Sign and send the request
-        return $this->sendRequest($request);
+        return $this->sendRequest($request, $doNotSign);
     }
 
     /**
@@ -1025,11 +1059,16 @@ class ApiClient extends ApiPackage
      *      that should be substituted and the values the values that should be used for the substitution
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
-    private function sendGetRequestAsync($methodPath, array $urlParams = null, array $queryParams = null)
-    {
-        return Promise\task(function () use (&$methodPath, &$urlParams, &$queryParams) {
+    private function sendGetRequestAsync(
+        $methodPath,
+        array $urlParams = null,
+        array $queryParams = null,
+        $doNotSign = false
+    ) {
+        return Promise\task(function () use (&$methodPath, &$urlParams, &$queryParams, $doNotSign) {
             // Prepare request
             $headers = [];
 
@@ -1048,7 +1087,7 @@ class ApiClient extends ApiPackage
             );
 
             // Sign and send the request asynchronously
-            return $this->sendRequestAsync($request);
+            return $this->sendRequestAsync($request, $doNotSign);
         });
     }
 
@@ -1060,6 +1099,7 @@ class ApiClient extends ApiPackage
      *      that should be substituted and the values the values that should be used for the substitution
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return stdClass - An object representing the JSON formatted data returned by the API endpoint
      * @throws CatenisClientException
      * @throws CatenisApiException
@@ -1068,7 +1108,8 @@ class ApiClient extends ApiPackage
         $methodPath,
         stdClass $jsonData,
         array $urlParams = null,
-        array $queryParams = null
+        array $queryParams = null,
+        $doNotSign = false
     ) {
         // Prepare request
         $headers = ['Content-Type' => 'application/json'];
@@ -1096,7 +1137,7 @@ class ApiClient extends ApiPackage
         );
 
         // Sign and send the request
-        return $this->sendRequest($request);
+        return $this->sendRequest($request, $doNotSign);
     }
 
     /**
@@ -1107,15 +1148,17 @@ class ApiClient extends ApiPackage
      *      that should be substituted and the values the values that should be used for the substitution
      * @param array|null $queryParams - A map (associative array) the keys of which are the names of query string
      *      parameters that should be added to the URL and the values the corresponding values of those parameters
+     * @param boolean $doNotSign Indicates whether request should not be signed
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
     private function sendPostRequestAsync(
         $methodPath,
         stdClass $jsonData,
         array $urlParams = null,
-        array $queryParams = null
+        array $queryParams = null,
+        $doNotSign = false
     ) {
-        return Promise\task(function () use (&$methodPath, &$jsonData, &$urlParams, &$queryParams) {
+        return Promise\task(function () use (&$methodPath, &$jsonData, &$urlParams, &$queryParams, $doNotSign) {
             // Prepare request
             $headers = ['Content-Type' => 'application/json'];
             $body = json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -1142,7 +1185,7 @@ class ApiClient extends ApiPackage
             );
 
             // Sign and send the request
-            return $this->sendRequestAsync($request);
+            return $this->sendRequestAsync($request, $doNotSign);
         });
     }
 
@@ -1163,8 +1206,8 @@ class ApiClient extends ApiPackage
 
     /**
      * ApiClient constructor.
-     * @param string $deviceId
-     * @param string $apiAccessSecret
+     * @param string|null $deviceId
+     * @param string|null $apiAccessSecret
      * @param array|null $options - A map (associative array) containing the following keys:
      *      'host' => [string]           - (optional, default: 'catenis.io') Host name (with optional port) of
      *                                      target Catenis API server
@@ -1172,7 +1215,7 @@ class ApiClient extends ApiPackage
      *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
-     *      'version' => [string]        - (optional, default: '0.9') Version of Catenis API to target
+     *      'version' => [string]        - (optional, default: '0.10') Version of Catenis API to target
      *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
      *                                      be compressed
      *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
@@ -1195,7 +1238,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.9';
+        $version = '0.10';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -1492,6 +1535,22 @@ class ApiClient extends ApiPackage
     public function retrieveMessageContainer($messageId)
     {
         return $this->sendGetRequest(...self::retrieveMessageContainerRequestParams($messageId));
+    }
+
+    /**
+     * Retrieve message origin
+     * @param string $messageId - The ID of message to retrieve origin info
+     * @param string|null $msgToSign A message (any text) to be signed using the Catenis message's origin device's
+     *                                private key. The resulting signature can then later be independently verified to
+     *                                prove the Catenis message origin
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Message Container
+     *                     Catenis API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveMessageOrigin($messageId, $msgToSign = null)
+    {
+        return $this->sendGetRequest(...self::retrieveMessageOriginRequestParams($messageId, $msgToSign));
     }
 
     /**
@@ -2070,6 +2129,19 @@ class ApiClient extends ApiPackage
     public function retrieveMessageContainerAsync($messageId)
     {
         return $this->sendGetRequestAsync(...self::retrieveMessageContainerRequestParams($messageId));
+    }
+
+    /**
+     * Retrieve message origin asynchronously
+     * @param string $messageId The ID of message to retrieve origin info
+     * @param string|null $msgToSign A message (any text) to be signed using the Catenis message's origin device's
+     *                                private key. The resulting signature can then later be independently verified to
+     *                                prove the Catenis message origin
+     * @return PromiseInterface A promise representing the asynchronous processing
+     */
+    public function retrieveMessageOriginAsync($messageId, $msgToSign = null)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveMessageOriginRequestParams($messageId, $msgToSign));
     }
 
     /**

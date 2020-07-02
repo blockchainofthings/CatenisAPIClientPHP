@@ -32,5 +32,9 @@
             <file>PHPClientVer4.0.1Test.php</file>
             <file>PHPClientVer4.0.1AsyncTest.php</file>
         </testsuite>
+        <testsuite name="PHP_Client_4.1.0">
+            <file>PHPClientVer4.1.0Test.php</file>
+            <file>PHPClientVer4.1.0AsyncTest.php</file>
+        </testsuite>
     </testsuites>
 </phpunit>

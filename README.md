@@ -65,11 +65,22 @@ require __DIR__ . 'vendor/autoload.php';
 ```
 
 ### Instantiate the client
- 
+
 ```php
 $ctnApiClient = new \Catenis\ApiClient(
     $deviceId,
     $apiAccessSecret,
+    [
+        'environment' => 'sandbox'
+    ]
+);
+```
+
+Optionally, the client can be instantiated without passing both the `$deviceId` and the `$apiAccessSecret` parameters or setting them
+ to *null* as shown below. In this case, the resulting client object should be used to call only **public** API methods.
+
+```php
+$ctnApiClient = new \Catenis\ApiClient(null, null,
     [
         'environment' => 'sandbox'
     ]
@@ -83,7 +94,7 @@ The following options can be used when instantiating the client:
 - **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[string\] - (optional, default: <b>*'0.9'*</b>) Version of Catenis API to target.
+- **version** \[string\] - (optional, default: <b>*'0.10'*</b>) Version of Catenis API to target.
 - **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
 - **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 - **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
@@ -505,6 +516,29 @@ try {
 
     if (isset($data->externalStorage)) {
         echo 'IPFS reference to message: ' . $data->externalStorage->ipfs . PHP_EOL;
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Retrieving information about a message's origin
+
+```php
+try {
+    $data = $ctnApiClient->retrieveMessageOrigin($messageId, 'Any text to be signed');
+
+    // Process returned data
+    if (isset($data->tx)) {
+        echo 'Catenis message transaction info: ' . print_r($data->tx, true);
+    }
+    
+    if (isset($data->offChainMsgEnvelope)) {
+        echo 'Off-chain message envelope info: ' . print_r($data->offChainMsgEnvelope, true);
+    }
+
+    if (isset($data->proof)) {
+        echo 'Origin proof info: ' . print_r($data->proof, true);
     }
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
