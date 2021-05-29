@@ -1474,7 +1474,7 @@ class PHPClientAsyncTest extends TestCase
      * Test listing issued assets asynchronously
      *
      * @depends testIssueAssetAsync
-     * @medium
+     * @large
      * @param array $assetInfo Info about the issued asset
      * @return void
      */

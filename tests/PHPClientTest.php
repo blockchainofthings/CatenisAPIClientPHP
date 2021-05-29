@@ -891,7 +891,7 @@ class PHPClientTest extends TestCase
      * Test listing issued assets
      *
      * @depends testIssueAsset
-     * @medium
+     * @large
      * @param array $assetInfo Info about the issued asset
      * @return void
      */
