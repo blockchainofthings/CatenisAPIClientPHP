@@ -1608,7 +1608,7 @@ class ApiClient extends ApiPackage
      *                                         'log'); sent, in case of messages sent from the current device (action =
      *                                         'send' direction = 'outbound'); or received, in case of messages sent to
      *                                         the device that issued the request (action = 'send' and direction =
-     *                                         'inbound'). Note: if a string is passed, assumes that it is an ISO8601
+     *                                         'inbound'). Note: if a string is passed, assumes that it is an ISO 8601
      *                                         formatter date/time
      *      'endDate' => [string|DateTime]    (optional) Date and time specifying the upper boundary of the time frame
      *                                         within which the messages intended to be retrieved has been: logged, in
@@ -1616,7 +1616,7 @@ class ApiClient extends ApiPackage
      *                                         'log'); sent, in case of messages sent from the current device (action =
      *                                         'send' direction = 'outbound'); or received, in case of messages sent to
      *                                         the device that issued the request (action = 'send' and direction =
-     *                                         'inbound'). Note: if a string is passed, assumes that it is an ISO8601
+     *                                         'inbound'). Note: if a string is passed, assumes that it is an ISO 8601
      *                                         formatter date/time
      * @param int|null $limit - (optional, default: 500) Maximum number of messages that should be returned
      * @param int|null $skip - (optional, default: 0) Number of messages that should be skipped (from beginning of list
@@ -1919,12 +1919,12 @@ class ApiClient extends ApiPackage
      * @param string|DateTime|null $startDate - (optional) Date and time specifying the lower boundary of the time
      *                                           frame within which the issuance events intended to be retrieved have
      *                                           occurred. The returned issuance events must have occurred not before
-     *                                           that date/time. Note: if a string is passed, it should be an ISO8601
+     *                                           that date/time. Note: if a string is passed, it should be an ISO 8601
      *                                           formatted date/time
      * @param string|DateTime|null $endDate - (optional) Date and time specifying the upper boundary of the time frame
      *                                         within which the issuance events intended to be retrieved have occurred.
      *                                         The returned issuance events must have occurred not after that date/
-     *                                         time. Note: if a string is passed, it should be an ISO8601 formatted
+     *                                         time. Note: if a string is passed, it should be an ISO 8601 formatted
      *                                         date/time
      * @param int|null $limit - (optional, default: 500) Maximum number of asset issuance events that should be returned
      * @param int|null $skip - (optional, default: 0) Number of asset issuance events that should be skipped (from
@@ -2197,7 +2197,7 @@ class ApiClient extends ApiPackage
      *                                             current device (action = 'send' direction = 'outbound'); or
      *                                             received, in case of messages sent to the device that issued the
      *                                             request (action = 'send' and direction = 'inbound'). Note: if a
-     *                                             string is passed, it should be an ISO8601 formatter date/time
+     *                                             string is passed, it should be an ISO 8601 formatter date/time
      *      'endDate' => [string|DateTime]        (optional) - Date and time specifying the upper boundary of the time
      *                                             frame within which the messages intended to be retrieved has been:
      *                                             logged, in case of messages logged by the device that issued the
@@ -2205,7 +2205,7 @@ class ApiClient extends ApiPackage
      *                                             current device (action = 'send' direction = 'outbound'); or
      *                                             received, in case of messages sent to the device that issued the
      *                                             request (action = 'send' and direction = 'inbound'). Note: if a
-     *                                             string is passed, it should be an ISO8601 formatter date/time
+     *                                             string is passed, it should be an ISO 8601 formatter date/time
      * @param int|null $limit - (optional, default: 500) Maximum number of messages that should be returned
      * @param int|null $skip - (optional, default: 0) Number of messages that should be skipped (from beginning of list
      *                          of matching messages) and not returned
@@ -2467,12 +2467,12 @@ class ApiClient extends ApiPackage
      * @param string|DateTime|null $startDate - (optional) Date and time specifying the lower boundary of the time
      *                                           frame within which the issuance events intended to be retrieved have
      *                                           occurred. The returned issuance events must have occurred not before
-     *                                           that date/time. Note: if a string is passed, it should be an ISO8601
+     *                                           that date/time. Note: if a string is passed, it should be an ISO 8601
      *                                           formatted date/time
      * @param string|DateTime|null $endDate - (optional) Date and time specifying the upper boundary of the time frame
      *                                         within which the issuance events intended to be retrieved have occurred.
      *                                         The returned issuance events must have occurred not after that date/
-     *                                         time. Note: if a string is passed, it should be an ISO8601 formatted
+     *                                         time. Note: if a string is passed, it should be an ISO 8601 formatted
      *                                         date/time
      * @param int|null $limit - (optional, default: 500) Maximum number of asset issuance events that should be returned
      * @param int|null $skip - (optional, default: 0) Number of asset issuance events that should be skipped (from

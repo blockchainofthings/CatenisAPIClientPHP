@@ -605,7 +605,7 @@ try {
  `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
  keys `fromDevices` and `toDevices`, respectively. Those keys accept for value an indexed array of device ID associative arrays,
  which is the same type of associative array taken by the first parameter (`targetDevice`) of the *sendMessage* method.
- Also, the date keys, `startDate` and `endDate`, accept not only strings containing ISO8601 formatted dates/times for values
+ Also, the date keys, `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times for values
  but also *Date* objects.
 
 ### Issuing an amount of a new asset
@@ -752,7 +752,7 @@ try {
 
 > **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different than the ones taken by
  the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
- accept not only strings containing ISO8601 formatted dates/times but also *DateTime* objects.
+ accept not only strings containing ISO 8601 formatted dates/times but also *DateTime* objects.
 
 ### Listing devices that currently hold any amount of a given asset
 
