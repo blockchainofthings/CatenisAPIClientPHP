@@ -801,7 +801,7 @@ class ApiClient extends ApiPackage
 
     /**
      * Set up request parameters for List Asset Holders API endpoint
-     * @param $assetId
+     * @param string $assetId
      * @param int|null $limit
      * @param int|null $skip
      * @return array
