@@ -246,6 +246,7 @@ try {
 
     // Start pooling for asynchronous processing progress
     $provisionalMessageId = $data->provisionalMessageId;
+    $done = false;
     $result = null;
     wait(1);
 
@@ -264,13 +265,17 @@ try {
                 echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
                     . $data->progress->error->message . PHP_EOL;
             }
+
+            $done = true;
         } else {
             // Asynchronous processing not done yet. Wait before continuing pooling
             wait(3);
         }
-    } while (is_null($result));
+    } while (!$done);
 
-    echo 'ID of logged message: ' . $result->messageId . PHP_EOL;
+    if (!is_null($result)) {
+        echo 'ID of logged message: ' . $result->messageId . PHP_EOL;
+    }
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
@@ -365,6 +370,7 @@ try {
 
     // Start pooling for asynchronous processing progress
     $provisionalMessageId = $data->provisionalMessageId;
+    $done = false;
     $result = null;
     wait(1);
 
@@ -383,13 +389,17 @@ try {
                 echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
                     . $data->progress->error->message . PHP_EOL;
             }
+
+            $done = true;
         } else {
             // Asynchronous processing not done yet. Wait before continuing pooling
             wait(3);
         }
-    } while (is_null($result));
+    } while (!$done);
 
-    echo 'ID of sent message: ' . $result->messageId . PHP_EOL;
+    if (!is_null($result)) {
+        echo 'ID of sent message: ' . $result->messageId . PHP_EOL;
+    }
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
@@ -459,6 +469,7 @@ try {
 
     // Start pooling for asynchronous processing progress
     $cachedMessageId = $data->cachedMessageId;
+    $done = false;
     $result = null;
     wait(1);
 
@@ -477,23 +488,27 @@ try {
                 echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
                     . $data->progress->error->message . PHP_EOL;
             }
+
+            $done = true;
         } else {
             // Asynchronous processing not done yet. Wait before continuing pooling
             wait(3);
         }
-    } while (is_null($result));
+    } while (!$done);
 
-    // Retrieve read message
-    $data = $ctnApiClient->readMessage($messageId, [
-        'encoding' => 'utf8',
-        'continuationToken' => $result->continuationToken
-    ]);
+    if (!is_null($result)) {
+        // Retrieve read message
+        $data = $ctnApiClient->readMessage($messageId, [
+            'encoding' => 'utf8',
+            'continuationToken' => $result->continuationToken
+        ]);
 
-    if ($data->msgInfo->action === 'send') {
-        echo 'Message sent from: ' . print_r($data->msgInfo->from, true);
+        if ($data->msgInfo->action === 'send') {
+            echo 'Message sent from: ' . print_r($data->msgInfo->from, true);
+        }
+
+        echo 'Read message: ' . $data->msgData . PHP_EOL;
     }
-
-    echo 'Read message: ' . $data->msgData . PHP_EOL;
 } catch (\Catenis\Exception\CatenisException $ex) {
     // Process exception
 }
