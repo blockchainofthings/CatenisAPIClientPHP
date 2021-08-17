@@ -621,7 +621,7 @@ try {
  keys `fromDevices` and `toDevices`, respectively. Those keys accept for value an indexed array of device ID associative arrays,
  which is the same type of associative array taken by the first parameter (`targetDevice`) of the *sendMessage* method.
  Also, the date keys, `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times for values
- but also *Date* objects.
+ but also *DateTime* objects.
 
 ### Issuing an amount of a new asset
 
