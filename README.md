@@ -615,12 +615,12 @@ try {
 ```
 
 > **Note**: the parameters taken by the *listMessages* method do not exactly match the parameters taken by the List
- Messages Catenis API method. Most of the parameters, with the exception of the last two (`limit` and `skip`), are
  mapped to keys of the first parameter (`selector`) of the *listMessages* method with a few singularities: parameters
+ Messages Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
  `fromDeviceIds` and `fromDeviceProdUniqueIds` and parameters `toDeviceIds` and `toDeviceProdUniqueIds` are replaced with
  keys `fromDevices` and `toDevices`, respectively. Those keys accept for value an indexed array of device ID associative arrays,
  which is the same type of associative array taken by the first parameter (`targetDevice`) of the *sendMessage* method.
- Also, the date keys, `startDate` and `endDate`, accept not only strings containing ISO 8601 formatted dates/times for values
+ Also, the date keys, `startDate` and `endDate`, accept for value not only strings containing ISO 8601 formatted dates/times
  but also *DateTime* objects.
 
 ### Issuing an amount of a new asset
@@ -765,8 +765,8 @@ try {
 }
 ```
 
-> **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different than the ones taken by
  the Retrieve Asset Issuance History Catenis API method. In particular, the date parameters, `startDate` and `endDate`,
+> **Note**: the parameters of the *retrieveAssetIssuanceHistory* method are slightly different from the ones taken by
  accept not only strings containing ISO 8601 formatted dates/times but also *DateTime* objects.
 
 ### Listing devices that currently hold any amount of a given asset
