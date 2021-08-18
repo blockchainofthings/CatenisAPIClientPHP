@@ -29,7 +29,7 @@ class PHPClientVer4d1d0AsyncTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        echo "\nPHPClientVer4d1d0Test test class\n";
+        echo "\nPHPClientVer4d1d0AsyncTest test class\n";
 
         echo 'Enter device #1 ID: [' . self::$device1['id'] . '] ';
         $id = rtrim(fgets(STDIN));
