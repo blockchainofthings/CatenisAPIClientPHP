@@ -833,6 +833,264 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Set up request parameters for Export Asset API endpoint
+     *
+     * @param string $assetId
+     * @param string $foreignBlockchain
+     * @param array $token
+     * @param array|null $options
+     * @return array
+     */
+    private static function exportAssetRequestParams($assetId, $foreignBlockchain, array $token, $options = null)
+    {
+        $jsonData = new stdClass();
+
+        $jsonData->token = $token;
+
+        if (is_array($options)) {
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $jsonData->options = $filteredOptions;
+            }
+        }
+
+        return [
+            'assets/:assetId/export/:foreignBlockchain',
+            $jsonData, [
+                'assetId' => $assetId,
+                'foreignBlockchain' => $foreignBlockchain
+            ],
+        ];
+    }
+
+    /**
+     * Set up request parameters for Migrate Asset API endpoint
+     *
+     * @param string $assetId
+     * @param string $foreignBlockchain
+     * @param array|string $migration
+     * @param array|null $options
+     * @return array
+     */
+    private static function migrateAssetRequestParams($assetId, $foreignBlockchain, $migration, $options = null)
+    {
+        $jsonData = new stdClass();
+
+        if (is_array($migration)) {
+            $jsonData->migration = self::filterNonNullKeys($migration);
+        } else {
+            $jsonData->migration = $migration;
+        }
+
+        if (is_array($options)) {
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $jsonData->options = $filteredOptions;
+            }
+        }
+
+        return [
+            'assets/:assetId/migrate/:foreignBlockchain',
+            $jsonData, [
+                'assetId' => $assetId,
+                'foreignBlockchain' => $foreignBlockchain
+            ],
+        ];
+    }
+
+    /**
+     * Set up request parameters for Asset Export Outcome API endpoint
+     *
+     * @param string $assetId
+     * @param string $foreignBlockchain
+     * @return array
+     */
+    private static function assetExportOutcomeRequestParams($assetId, $foreignBlockchain)
+    {
+        return [
+            'assets/:assetId/export/:foreignBlockchain', [
+                'assetId' => $assetId,
+                'foreignBlockchain' => $foreignBlockchain
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for Asset Migration Outcome API endpoint
+     *
+     * @param string $migrationId
+     * @return array
+     */
+    private static function assetMigrationOutcomeRequestParams($migrationId)
+    {
+        return [
+            'assets/migrations/:migrationId', [
+                'migrationId' => $migrationId
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for List Exported Assets API endpoint
+     *
+     * @param array|null $selector
+     * @param int|null $limit
+     * @param int|null $skip
+     * @return array
+     */
+    private static function listExportedAssetsRequestParams($selector = null, $limit = null, $skip = null)
+    {
+        $queryParams = null;
+
+        if ($selector !== null) {
+            $queryParams = [];
+
+            if (isset($selector['assetId'])) {
+                $queryParams['assetId'] = $selector['assetId'];
+            }
+
+            if (isset($selector['foreignBlockchain'])) {
+                $queryParams['foreignBlockchain'] = $selector['foreignBlockchain'];
+            }
+
+            if (isset($selector['tokenSymbol'])) {
+                $queryParams['tokenSymbol'] = $selector['tokenSymbol'];
+            }
+
+            if (isset($selector['status'])) {
+                $queryParams['status'] = $selector['status'];
+            }
+
+            if (isset($selector['negateStatus'])) {
+                $queryParams['negateStatus'] = $selector['negateStatus'];
+            }
+
+            if (isset($selector['startDate'])) {
+                $startDate = $selector['startDate'];
+
+                if (is_string($startDate) && !empty($startDate)) {
+                    $queryParams['startDate'] = $startDate;
+                } elseif ($startDate instanceof DateTime) {
+                    $queryParams['startDate'] = $startDate->format(DateTime::ISO8601);
+                }
+            }
+
+            if (isset($selector['endDate'])) {
+                $endDate = $selector['endDate'];
+
+                if (is_string($endDate) && !empty($endDate)) {
+                    $queryParams['endDate'] = $endDate;
+                } elseif ($endDate instanceof DateTime) {
+                    $queryParams['endDate'] = $endDate->format(DateTime::ISO8601);
+                }
+            }
+        }
+
+        if ($limit !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['limit'] = $limit;
+        }
+
+        if ($skip !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['skip'] = $skip;
+        }
+
+        return [
+            'assets/exported',
+            null,
+            $queryParams
+        ];
+    }
+
+    /**
+     * Set up request parameters for List Asset Migrations API endpoint
+     *
+     * @param array|null $selector
+     * @param int|null $limit
+     * @param int|null $skip
+     * @return array
+     */
+    private static function listAssetMigrationsRequestParams($selector = null, $limit = null, $skip = null)
+    {
+        $queryParams = null;
+
+        if ($selector !== null) {
+            $queryParams = [];
+
+            if (isset($selector['assetId'])) {
+                $queryParams['assetId'] = $selector['assetId'];
+            }
+
+            if (isset($selector['foreignBlockchain'])) {
+                $queryParams['foreignBlockchain'] = $selector['foreignBlockchain'];
+            }
+
+            if (isset($selector['direction'])) {
+                $queryParams['direction'] = $selector['direction'];
+            }
+
+            if (isset($selector['status'])) {
+                $queryParams['status'] = $selector['status'];
+            }
+
+            if (isset($selector['negateStatus'])) {
+                $queryParams['negateStatus'] = $selector['negateStatus'];
+            }
+
+            if (isset($selector['startDate'])) {
+                $startDate = $selector['startDate'];
+
+                if (is_string($startDate) && !empty($startDate)) {
+                    $queryParams['startDate'] = $startDate;
+                } elseif ($startDate instanceof DateTime) {
+                    $queryParams['startDate'] = $startDate->format(DateTime::ISO8601);
+                }
+            }
+
+            if (isset($selector['endDate'])) {
+                $endDate = $selector['endDate'];
+
+                if (is_string($endDate) && !empty($endDate)) {
+                    $queryParams['endDate'] = $endDate;
+                } elseif ($endDate instanceof DateTime) {
+                    $queryParams['endDate'] = $endDate->format(DateTime::ISO8601);
+                }
+            }
+        }
+
+        if ($limit !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['limit'] = $limit;
+        }
+
+        if ($skip !== null) {
+            if ($queryParams === null) {
+                $queryParams = [];
+            }
+
+            $queryParams['skip'] = $skip;
+        }
+
+        return [
+            'assets/migrations',
+            null,
+            $queryParams
+        ];
+    }
+
+    /**
      * Signs an HTTP request to an API endpoint adding the proper HTTP headers
      * @param RequestInterface &$request - The request to be signed
      * @throws Exception
@@ -1215,7 +1473,7 @@ class ApiClient extends ApiPackage
      *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
-     *      'version' => [string]        - (optional, default: '0.10') Version of Catenis API to target
+     *      'version' => [string]        - (optional, default: '0.11') Version of Catenis API to target
      *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
      *                                      be compressed
      *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
@@ -1238,7 +1496,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.10';
+        $version = '0.11';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -1967,6 +2225,166 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Export an asset to a foreign blockchain, by creating a new (ERC-20 compliant) token on that blockchain
+     *
+     * @param string $assetId - The ID of asset to export
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @param array $token - A map (associative array) containing the following keys:
+     *      'id' => [string]            The name of the token to be created on the foreign blockchain
+     *      'symbol' => [string]        The symbol of the token to be created on the foreign blockchain
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
+     *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
+     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset export should be
+     *                                           done. Instead, only the estimated price (in the foreign
+     *                                           blockchain's native coin) to fulfill the operation should be returned
+     * @return stdClass - An object representing the JSON formatted data returned by the Export Asset API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function exportAsset($assetId, $foreignBlockchain, array $token, $options = null)
+    {
+        return $this->sendPostRequest(...self::exportAssetRequestParams(
+            $assetId,
+            $foreignBlockchain,
+            $token,
+            $options
+        ));
+    }
+
+    /**
+     * Migrate an amount of a previously exported asset to/from the foreign blockchain token
+     *
+     * @param string $assetId - The ID of the asset to migrate an amount of it
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @param array|string $migration - A map (associative array) describing a new asset migration, with the keys listed
+     *                                   below. Otherwise, if a string value is passed, it is assumed to be the ID of
+     *                                   the asset migration to be reprocessed.
+     *      'direction' => [string]         The direction of the migration. Valid options: 'outward', 'inward'
+     *      'amount' => [float]             The amount (as a decimal value) of the asset to be migrated
+     *      'destAddress' => [string]       (optional) The address of the account on the foreign blockchain that should
+     *                                       be credited with the specified amount of the foreign token
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
+     *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
+     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset migration should be
+     *                                           done. Instead, only the estimated price (in the foreign
+     *                                           blockchain's native coin) to fulfill the operation should be returned
+     * @return stdClass - An object representing the JSON formatted data returned by the Migrate Asset API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function migrateAsset($assetId, $foreignBlockchain, $migration, $options = null)
+    {
+        return $this->sendPostRequest(...self::migrateAssetRequestParams(
+            $assetId,
+            $foreignBlockchain,
+            $migration,
+            $options
+        ));
+    }
+
+    /**
+     * Retrieve the current information about the outcome of an asset export
+     *
+     * @param string $assetId - The ID of the asset that was exported
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @return stdClass - An object representing the JSON formatted data returned by the Asset Export Outcome
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function assetExportOutcome($assetId, $foreignBlockchain)
+    {
+        return $this->sendGetRequest(...self::assetExportOutcomeRequestParams($assetId, $foreignBlockchain));
+    }
+
+    /**
+     * Retrieve the current information about the outcome of an asset migration
+     *
+     * @param string $migrationId - The ID of the asset migration
+     * @return stdClass - An object representing the JSON formatted data returned by the Asset Migration Outcome
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function assetMigrationOutcome($migrationId)
+    {
+        return $this->sendGetRequest(...self::assetMigrationOutcomeRequestParams($migrationId));
+    }
+
+    /**
+     * Retrieves a list of issued asset exports that satisfy a given search criteria
+     *
+     * @param array|null $selector - (optional) A map (associative array) containing the following keys:
+     *      'assetId' => [string]               (optional) The ID of the exported asset
+     *      'foreignBlockchain' => [string]     (optional) The key identifying the foreign blockchain to where the asset
+     *                                           has been exported. Valid options: 'ethereum', 'binance', 'polygon'
+     *      'tokenSymbol' => [string]           (optional) The symbol of the resulting foreign token
+     *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
+     *                                           include. Valid options: 'pending', 'success, 'error'
+     *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
+     *                                           specified statuses should be excluded instead
+     *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
+     *                                           time frame within which the asset has been exported. If a string is
+     *                                           passed, it should be an ISO 8601 formatted date/time
+     *      'endDate' => [string:DateTime]      (optional) Date and time specifying the inclusive upper bound of the
+     *                                           time frame within which the asset has been exported. If a string is
+     *                                           passed, it should be an ISO 8601 formatted date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset exports that should be returned. Must
+     *                           be a positive integer value not greater than 500
+     * @param int|null $skip - (optional, default: 0) Number of asset exports that should be skipped (from beginning of
+     *                          list of matching asset exports) and not returned. Must be a non-negative (includes
+     *                          zero) integer value
+     * @return stdClass - An object representing the JSON formatted data returned by the List Exported Assets
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function listExportedAssets($selector = null, $limit = null, $skip = null)
+    {
+        return $this->sendGetRequest(...self::listExportedAssetsRequestParams($selector, $limit, $skip));
+    }
+
+    /**
+     * Retrieves a list of issued asset migrations that satisfy a given search criteria
+     *
+     * @param array|null $selector - (optional) A map (associative array) containing the following keys:
+     *      'assetId' => [string]               (optional) The ID of the asset the amount of which has been migrated
+     *      'foreignBlockchain' => [string]     (optional) The key identifying the foreign blockchain to/from where the
+     *                                           asset amount has been migrated. Valid options: 'ethereum', 'binance',
+     *                                           'polygon'
+     *      'direction' => [string]             (optional) The direction of the migration. Valid options: 'outward',
+     *                                           'inward'
+     *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
+     *                                           include. Valid options: 'pending', 'success', 'error'
+     *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
+     *                                           specified statuses should be excluded instead
+     *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
+     *                                           time frame within which the asset amount has been migrated. If a
+     *                                           string is passed, it should be an ISO 8601 formatted date/time
+     *      'endDate' => [string|DateTime]      (optional) Date and time specifying the inclusive upper bound of the
+     *                                           time frame within which the asset amount has been migrated. If a
+     *                                           string is passed, it should be an ISO 8601 formatted date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset migrations that should be returned.
+     *                           Must be a positive integer value not greater than 500
+     * @param int|null $skip - (optional, default: 0) Number of asset migrations that should be skipped (from beginning
+     *                          of list of matching asset migrations) and not returned. Must be a non-negative
+     *                          (includes zero) integer value
+     * @return stdClass - An object representing the JSON formatted data returned by the List Asset Migrations
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function listAssetMigrations($selector = null, $limit = null, $skip = null)
+    {
+        return $this->sendGetRequest(...self::listAssetMigrationsRequestParams($selector, $limit, $skip));
+    }
+
+    /**
      * Create WebSocket Notification Channel for a given notification event
      * @param string $eventName - Name of Catenis notification event
      * @return WsNotifyChannel - Catenis notification channel object
@@ -2506,5 +2924,150 @@ class ApiClient extends ApiPackage
     public function listAssetHoldersAsync($assetId, $limit = null, $skip = null)
     {
         return $this->sendGetRequestAsync(...self::listAssetHoldersRequestParams($assetId, $limit, $skip));
+    }
+
+    /**
+     * Export an asset to a foreign blockchain, by creating a new (ERC-20 compliant) token on that blockchain,
+     *  asynchronously
+     *
+     * @param string $assetId - The ID of asset to export
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @param array $token - A map (associative array) containing the following keys:
+     *      'id' => [string]            The name of the token to be created on the foreign blockchain
+     *      'symbol' => [string]        The symbol of the token to be created on the foreign blockchain
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
+     *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
+     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset export should be
+     *                                           done. Instead, only the estimated price (in the foreign
+     *                                           blockchain's native coin) to fulfill the operation should be returned
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function exportAssetAsync($assetId, $foreignBlockchain, array $token, $options = null)
+    {
+        return $this->sendPostRequestAsync(...self::exportAssetRequestParams(
+            $assetId,
+            $foreignBlockchain,
+            $token,
+            $options
+        ));
+    }
+
+    /**
+     * Migrate an amount of a previously exported asset to/from the foreign blockchain token asynchronously
+     *
+     * @param string $assetId - The ID of the asset to migrate an amount of it
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @param array|string $migration - A map (associative array) describing a new asset migration, with the keys listed
+     *                                   below. Otherwise, if a string value is passed, it is assumed to be the ID of
+     *                                   the asset migration to be reprocessed.
+     *      'direction' => [string]         The direction of the migration. Valid options: 'outward', 'inward'
+     *      'amount' => [float]             The amount (as a decimal value) of the asset to be migrated
+     *      'destAddress' => [string]       (optional) The address of the account on the foreign blockchain that should
+     *                                       be credited with the specified amount of the foreign token
+     * @param array|null $options - (optional) A map (associative array) containing the following keys:
+     *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
+     *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
+     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset migration should be
+     *                                           done. Instead, only the estimated price (in the foreign
+     *                                           blockchain's native coin) to fulfill the operation should be returned
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function migrateAssetAsync($assetId, $foreignBlockchain, $migration, $options = null)
+    {
+        return $this->sendPostRequestAsync(...self::migrateAssetRequestParams(
+            $assetId,
+            $foreignBlockchain,
+            $migration,
+            $options
+        ));
+    }
+
+    /**
+     * Retrieve the current information about the outcome of an asset export asynchronously
+     *
+     * @param string $assetId - The ID of the asset that was exported
+     * @param string $foreignBlockchain - The key identifying the foreign blockchain. Valid options: 'ethereum',
+     *                                     'binance', 'polygon'
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function assetExportOutcomeAsync($assetId, $foreignBlockchain)
+    {
+        return $this->sendGetRequestAsync(...self::assetExportOutcomeRequestParams($assetId, $foreignBlockchain));
+    }
+
+    /**
+     * Retrieve the current information about the outcome of an asset migration asynchronously
+     *
+     * @param string $migrationId - The ID of the asset migration
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function assetMigrationOutcomeAsync($migrationId)
+    {
+        return $this->sendGetRequestAsync(...self::assetMigrationOutcomeRequestParams($migrationId));
+    }
+
+    /**
+     * Retrieves a list of issued asset exports that satisfy a given search criteria asynchronously
+     *
+     * @param array|null $selector - (optional) A map (associative array) containing the following keys:
+     *      'assetId' => [string]               (optional) The ID of the exported asset
+     *      'foreignBlockchain' => [string]     (optional) The key identifying the foreign blockchain to where the asset
+     *                                           has been exported. Valid options: 'ethereum', 'binance', 'polygon'
+     *      'tokenSymbol' => [string]           (optional) The symbol of the resulting foreign token
+     *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
+     *                                           include. Valid options: 'pending', 'success, 'error'
+     *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
+     *                                           specified statuses should be excluded instead
+     *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
+     *                                           time frame within which the asset has been exported. If a string is
+     *                                           passed, it should be an ISO 8601 formatted date/time
+     *      'endDate' => [string:DateTime]      (optional) Date and time specifying the inclusive upper bound of the
+     *                                           time frame within which the asset has been exported. If a string is
+     *                                           passed, it should be an ISO 8601 formatted date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset exports that should be returned. Must
+     *                           be a positive integer value not greater than 500
+     * @param int|null $skip - (optional, default: 0) Number of asset exports that should be skipped (from beginning of
+     *                          list of matching asset exports) and not returned. Must be a non-negative (includes
+     *                          zero) integer value
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function listExportedAssetsAsync($selector = null, $limit = null, $skip = null)
+    {
+        return $this->sendGetRequestAsync(...self::listExportedAssetsRequestParams($selector, $limit, $skip));
+    }
+
+    /**
+     * Retrieves a list of issued asset migrations that satisfy a given search criteria asynchronously
+     *
+     * @param array|null $selector - (optional) A map (associative array) containing the following keys:
+     *      'assetId' => [string]               (optional) The ID of the asset the amount of which has been migrated
+     *      'foreignBlockchain' => [string]     (optional) The key identifying the foreign blockchain to/from where the
+     *                                           asset amount has been migrated. Valid options: 'ethereum', 'binance',
+     *                                           'polygon'
+     *      'direction' => [string]             (optional) The direction of the migration. Valid options: 'outward',
+     *                                           'inward'
+     *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
+     *                                           include. Valid options: 'pending', 'success', 'error'
+     *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
+     *                                           specified statuses should be excluded instead
+     *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
+     *                                           time frame within which the asset amount has been migrated. If a
+     *                                           string is passed, it should be an ISO 8601 formatted date/time
+     *      'endDate' => [string|DateTime]      (optional) Date and time specifying the inclusive upper bound of the
+     *                                           time frame within which the asset amount has been migrated. If a
+     *                                           string is passed, it should be an ISO 8601 formatted date/time
+     * @param int|null $limit - (optional, default: 500) Maximum number of asset migrations that should be returned.
+     *                           Must be a positive integer value not greater than 500
+     * @param int|null $skip - (optional, default: 0) Number of asset migrations that should be skipped (from beginning
+     *                          of list of matching asset migrations) and not returned. Must be a non-negative
+     *                          (includes zero) integer value
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function listAssetMigrationsAsync($selector = null, $limit = null, $skip = null)
+    {
+        return $this->sendGetRequestAsync(...self::listAssetMigrationsRequestParams($selector, $limit, $skip));
     }
 }

@@ -94,7 +94,7 @@ The following options can be used when instantiating the client:
 - **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[string\] - (optional, default: <b>*'0.10'*</b>) Version of Catenis API to target.
+- **version** \[string\] - (optional, default: <b>*'0.11'*</b>) Version of Catenis API to target.
 - **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
 - **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 - **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
@@ -777,10 +777,16 @@ try {
     
     // Process returned data
     foreach ($data->assetHolders as $idx => $assetHolder) {
-        echo 'Asset holder #' . ($idx + 1) . ':' . PHP_EOL;
-        echo '  - device holding an amount of the asset: ' . print_r($assetHolder->holder, true);
-        echo '  - amount of asset currently held by device: ' . $assetHolder->balance->total . PHP_EOL;
-        echo '  - amount not yet confirmed: ' . $assetHolder->balance->unconfirmed . PHP_EOL;
+        if (!isset($assetHolder->migrated)) {
+            echo 'Asset holder #' . ($idx + 1) . ':' . PHP_EOL;
+            echo '  - device holding an amount of the asset: ' . print_r($assetHolder->holder, true);
+            echo '  - amount of asset currently held by device: ' . $assetHolder->balance->total . PHP_EOL;
+            echo '  - amount not yet confirmed: ' . $assetHolder->balance->unconfirmed . PHP_EOL;
+        } else {
+            echo 'Migrated asset:' . PHP_EOL;
+            echo '  - total migrated amount: ' . $assetHolder->balance->total . PHP_EOL;
+            echo '  - amount not yet confirmed: ' . $assetHolder->balance->unconfirmed . PHP_EOL;
+        }
     }
 
     if ($data->hasMore) {
@@ -790,6 +796,268 @@ try {
     // Process exception
 }
 ```
+
+### Exporting an asset to a foreign blockchain
+
+#### Estimating the export cost in the foreign blockchain's native coin
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->exportAsset($assetId, $foreignBlockchain, [
+        'name' => 'Test Catenis token #01',
+        'symbol' => 'CTK01'
+    ], [
+        'estimateOnly' => true
+    ]);
+
+    // Process returned data
+    echo 'Estimated foreign blockchain transaction execution price: ' . $data->estimatedPrice . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing the export
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->exportAsset($assetId, $foreignBlockchain, [
+        'name' => 'Test Catenis token #01',
+        'symbol' => 'CTK01'
+    ]);
+
+    // Process returned data
+    echo 'Foreign blockchain transaction ID (hash): ' . $data->foreignTransaction->id . PHP_EOL;
+
+    // Start polling for asset export outcome
+    $done = false;
+    $tokenId = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->assetExportOutcome($assetId, $foreignBlockchain);
+
+        // Process returned data
+        if ($data->status === 'success') {
+            // Asset successfully exported
+            $tokenId = $data->token->id;
+            $done = true;
+        } elseif ($data->status === 'pending') {
+            // Final asset export state not yet reached. Wait before continuing pooling
+            wait(3);
+        } else {
+            // Asset export has failed. Process error
+            echo 'Error executing foreign blockchain transaction: ' . $data->foreignTransaction->error . PHP_EOL;
+            $done = true;
+        }
+    } while (!$done);
+
+    if (!is_null($tokenId)) {
+        echo 'Foreign token ID (address): ' . $tokenId . PHP_EOL;
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Migrating an asset amount to a foreign blockchain
+
+#### Estimating the migration cost in the foreign blockchain's native coin
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->migrateAsset($assetId, $foreignBlockchain, [
+        'direction' => 'outward',
+        'amount' => 50,
+        'destAddress' => '0xe247c9BfDb17e7D8Ae60a744843ffAd19C784943'
+    ], [
+        'estimateOnly' => true
+    ]);
+
+    // Process returned data
+    echo 'Estimated foreign blockchain transaction execution price: ' . $data->estimatedPrice . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing the migration
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->migrateAsset($assetId, $foreignBlockchain, [
+        'direction' => 'outward',
+        'amount' => 50,
+        'destAddress' => '0xe247c9BfDb17e7D8Ae60a744843ffAd19C784943'
+    ]);
+
+    // Process returned data
+    $migrationId = $data->migrationId;
+    echo 'Asset migration ID: ' . $migrationId . PHP_EOL;
+
+    // Start polling for asset migration outcome
+    $done = false;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->assetMigrationOutcome($migrationId);
+
+        // Process returned data
+        if ($data->status === 'success') {
+            // Asset amount successfully migrated
+            echo 'Asset amount successfully migrated' . PHP_EOL;
+            $done = true;
+        } elseif ($data->status === 'pending') {
+            // Final asset migration state not yet reached. Wait before continuing pooling
+            wait(3);
+        } else {
+            // Asset migration has failed. Process error
+            if (isset($data->catenisService->error)) {
+                echo 'Error executing Catenis service: ' . $data->catenisService->error . PHP_EOL;
+            }
+
+            if (isset($data->foreignTransaction->error)) {
+                echo 'Error executing foreign blockchain transaction: ' . $data->foreignTransaction->error . PHP_EOL;
+            }
+
+            $done = true;
+        }
+    } while (!$done);
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Reprocessing a (failed) migration
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->migrateAsset($assetId, $foreignBlockchain, $migrationId);
+
+    // Start polling for asset migration outcome
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Getting asset export outcome
+
+```php
+try {
+    $foreignBlockchain = 'ethereum';
+
+    $data = $ctnApiClient->assetExportOutcome($assetId, $foreignBlockchain);
+
+    // Process returned data
+    if ($data->status === 'success') {
+        // Asset successfully exported
+        echo 'Foreign token ID (address): ' . $data->token->id . PHP_EOL;
+    } elseif ($data->status === 'pending') {
+        // Final asset export state not yet reached
+    } else {
+        // Asset export has failed. Process error
+        echo 'Error executing foreign blockchain transaction: ' . $data->foreignTransaction->error . PHP_EOL;
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Getting asset migration outcome
+
+```php
+try {
+    $data = $ctnApiClient->assetMigrationOutcome($migrationId);
+
+    // Process returned data
+    if ($data->status === 'success') {
+        // Asset amount successfully migrated
+        echo 'Asset amount successfully migrated' . PHP_EOL;
+    } elseif ($data->status === 'pending') {
+        // Final asset migration state not yet reached
+    } else {
+        // Asset migration has failed. Process error
+        if (isset($data->catenisService->error)) {
+            echo 'Error executing Catenis service: ' . $data->catenisService->error . PHP_EOL;
+        }
+
+        if (isset($data->foreignTransaction->error)) {
+            echo 'Error executing foreign blockchain transaction: ' . $data->foreignTransaction->error . PHP_EOL;
+        }
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Listing exported assets
+
+```php
+try {
+    $data = $ctnApiClient->listExportedAssets([
+        'foreignBlockchain' => 'ethereum',
+        'status' => 'success',
+        'startDate' => new \DateTime('20210801T000000Z')
+    ], 200, 0);
+
+    // Process returned data
+    if (count($data->exportedAssets) > 0) {
+        echo 'Returned asset exports: ' . print_r($data->exportedAssets, true);
+        
+        if ($data->hasMore) {
+            echo 'Not all asset exports have been returned' . PHP_EOL;
+        }
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+> **Note**: the parameters taken by the *listExportedAssets* method do not exactly match the parameters taken by the
+ List Exported Assets Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
+ mapped to keys of the first parameter (`$selector`) of the *listExportedAssets* method with a few singularities: the
+ date keys, `startDate` and `endDate`, accept for value not only strings containing ISO 8601 formatted dates/times but also
+ *DateTime* objects.
+
+### Listing asset migrations
+
+```php
+try {
+    $data = $ctnApiClient->listAssetMigrations([
+        'foreignBlockchain' => 'ethereum',
+        'direction' => 'outward',
+        'status' => 'success',
+        'startDate' => new \DateTime('20210801T000000Z')
+    ], 200, 0);
+
+    // Process returned data
+    if (count($data->assetMigrations) > 0) {
+        echo 'Returned asset migrations: ' . print_r($data->assetMigrations, true);
+        
+        if ($data->hasMore) {
+            echo 'Not all asset migrations have been returned' . PHP_EOL;
+        }
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+> **Note**: the parameters taken by the *listAssetMigrations* method do not exactly match the parameters taken by the
+ List Asset Migrations Catenis API method. Most of the parameters, except for the last two (`limit` and `skip`), are
+ mapped to keys of the first parameter (`$selector`) of the *listAssetMigrations* method with a few singularities: the
+ date keys, `startDate` and `endDate`, accept for value not only strings containing ISO 8601 formatted dates/times but also
+ *DateTime* objects.
 
 ### Listing system defined permission events
 
