@@ -3,7 +3,7 @@
 ## [4.1.0] - 2020-07-02
 
 ### New features
-- Added support for changes introduced by version 0.10 of the Catenis Enterprise API: new public API method Retrieve
+- Added support for changes introduced by version 0.10 of the Catenis API: new public API method Retrieve
  Message Origin.
 
 ## [4.0.1] - 2020-01-23
@@ -22,10 +22,10 @@
  the `off-chain` key of the *options* parameter needs to be set to ***false***.
 
 ### Changes
-- The default version of the Catenis Enterprise API (when instantiating the API client) is now set to 0.9.
+- The default version of the Catenis API (when instantiating the API client) is now set to 0.9.
 
 ### New features
-- As a consequence for targeting version 0.9 of the Catenis Enterprise API, the new features introduced by that version
+- As a consequence for targeting version 0.9 of the Catenis API, the new features introduced by that version
  are supported: log, send, read and retrieve container info of Catenis off-chain messages.
 
 ## [3.0.1] - 2019-08-24
@@ -47,7 +47,7 @@
 
 ### New features
 - Added options (when instantiating API client) to send/receive compressed data, which is on by default.
-- Added support for changes introduced by version 0.8 of the Catenis Enterprise API: "pagination" (limit/skip) for API
+- Added support for changes introduced by version 0.8 of the Catenis API: "pagination" (limit/skip) for API
  methods List Messages and Retrieve Asset Issuance History; new URI format for notification endpoints.
 
 ## [2.1.3] - 2019-06-22
@@ -82,7 +82,7 @@
 - The associative array returned from a successful call to the *readMessage* method has a different structure.
 
 ### New features
-- Added support for version 0.7 of the Catenis Enterprise API: log, send and read message in chunks.
+- Added support for version 0.7 of the Catenis API: log, send and read message in chunks.
 
 ## [1.0.3] - 2019-01-02
 

@@ -1,8 +1,8 @@
 # Catenis API PHP Client
 
-This library is used to make it easier to access the Catenis Enterprise API services from PHP applications.
+This library is used to make it easier to access the Catenis API services from PHP applications.
 
-This current release (4.1.0) targets version 0.10 of the Catenis Enterprise API.
+This current release (4.1.0) targets version 0.10 of the Catenis API.
 
 ## Installation
 
@@ -1364,9 +1364,9 @@ $wsNtfyChannel->open()->then(
 );
 ```
 
-## Catenis Enterprise API Documentation
+## Catenis API Documentation
 
-For further information on the Catenis Enterprise API, please reference the [Catenis Enterprise API Documentation](https://catenis.com/docs/api).
+For further information on the Catenis API, please reference the [Catenis API Documentation](https://catenis.com/docs/api).
 
 ## License
 
