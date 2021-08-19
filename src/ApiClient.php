@@ -2236,8 +2236,8 @@ class ApiClient extends ApiPackage
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
      *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
      *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset export should be
-     *                                           done. Instead, only the estimated price (in the foreign
+     *      'estimateOnly' => [bool]            (optional, default: false) When set, indicates that no asset export
+     *                                           should be executed but only the estimated price (in the foreign
      *                                           blockchain's native coin) to fulfill the operation should be returned
      * @return stdClass - An object representing the JSON formatted data returned by the Export Asset API endpoint
      * @throws CatenisClientException
@@ -2269,8 +2269,8 @@ class ApiClient extends ApiPackage
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
      *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
      *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset migration should be
-     *                                           done. Instead, only the estimated price (in the foreign
+     *      'estimateOnly' => [bool]            (optional, default: false) When set, indicates that no asset migration
+     *                                           should be executed but only the estimated price (in the foreign
      *                                           blockchain's native coin) to fulfill the operation should be returned
      * @return stdClass - An object representing the JSON formatted data returned by the Migrate Asset API endpoint
      * @throws CatenisClientException
@@ -2939,8 +2939,8 @@ class ApiClient extends ApiPackage
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
      *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
      *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset export should be
-     *                                           done. Instead, only the estimated price (in the foreign
+     *      'estimateOnly' => [bool]            (optional, default: false) When set, indicates that no asset export
+     *                                           should be executed but only the estimated price (in the foreign
      *                                           blockchain's native coin) to fulfill the operation should be returned
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
@@ -2970,8 +2970,8 @@ class ApiClient extends ApiPackage
      * @param array|null $options - (optional) A map (associative array) containing the following keys:
      *      'consumptionProfile' => [string]    (optional) Name of the foreign blockchain's native coin consumption
      *                                           profile to use. Valid options: 'fastest', 'fast', 'average', 'slow'
-     *      'estimateOnly' => [bool]            (optional, default: false) Indicates that no asset migration should be
-     *                                           done. Instead, only the estimated price (in the foreign
+     *      'estimateOnly' => [bool]            (optional, default: false) When set, indicates that no asset migration
+     *                                           should be executed but only the estimated price (in the foreign
      *                                           blockchain's native coin) to fulfill the operation should be returned
      * @return PromiseInterface - A promise representing the asynchronous processing
      */
