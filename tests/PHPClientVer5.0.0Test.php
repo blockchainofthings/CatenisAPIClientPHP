@@ -85,6 +85,33 @@ class PHPClientVer5d0d0Test extends TestCase
     }
 
     /**
+     * Test listing new asset export related notification events
+     *
+     * @medium
+     * @return void
+     */
+    public function testAssetExportNotificationEvents()
+    {
+        $data = null;
+
+        try {
+            $data = self::$ctnClient->listNotificationEvents();
+        } catch (Exception $ex) {
+            // Throw exeception
+            throw new Exception('Error listing notification events.', 0, $ex);
+        }
+
+        $this->assertThat(
+            $data,
+            $this->logicalAnd(
+                $this->objectHasAttribute('asset-export-outcome'),
+                $this->objectHasAttribute('asset-migration-outcome')
+            ),
+            'Missing asset export related notification events'
+        );
+    }
+
+    /**
      * Test retrieving asset export price estimate
      *
      * @medium
@@ -110,6 +137,7 @@ class PHPClientVer5d0d0Test extends TestCase
     /**
      * Test exporting asset and receiving notification of its final outcome
      *
+     * @depends testAssetExportNotificationEvents
      * @medium
      * @return void
      */
@@ -288,6 +316,7 @@ class PHPClientVer5d0d0Test extends TestCase
     /**
      * Test migrating asset amount and receiving notification of its final outcome
      *
+     * @depends testAssetExportNotificationEvents
      * @medium
      * @return void
      */

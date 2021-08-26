@@ -101,6 +101,49 @@ class PHPClientVer5d0d0AsyncTest extends TestCase
     }
 
     /**
+     * Test listing new asset export related notification events
+     *
+     * @medium
+     * @return void
+     */
+    public function testAssetExportNotificationEvents()
+    {
+        $data = null;
+        $error = null;
+
+        self::$ctnClientAsync->listNotificationEventsAsync()->then(
+            function ($retVal) use (&$data) {
+                // Get returned data and stop event loop
+                $data = $retVal;
+                self::$loop->stop();
+            },
+            function ($ex) use (&$error) {
+                // Get returned error and stop event loop
+                $error = $ex;
+                self::$loop->stop();
+            }
+        );
+
+        // Start event loop
+        self::$loop->run();
+
+        if (!is_null($data)) {
+            // Validate returned data
+            $this->assertThat(
+                $data,
+                $this->logicalAnd(
+                    $this->objectHasAttribute('asset-export-outcome'),
+                    $this->objectHasAttribute('asset-migration-outcome')
+                ),
+                'Missing asset export related notification events'
+            );
+        } else {
+            // Throw error
+            throw new Exception('Error listing notification events.', 0, $error);
+        }
+    }
+
+    /**
      * Test retrieving asset export price estimate
      *
      * @medium
@@ -141,6 +184,7 @@ class PHPClientVer5d0d0AsyncTest extends TestCase
     /**
      * Test exporting asset and receiving notification of its final outcome
      *
+     * @depends testAssetExportNotificationEvents
      * @medium
      * @return void
      */
@@ -346,6 +390,7 @@ class PHPClientVer5d0d0AsyncTest extends TestCase
     /**
      * Test migrating asset amount and receiving notification of its final outcome
      *
+     * @depends testAssetExportNotificationEvents
      * @medium
      * @return void
      */
