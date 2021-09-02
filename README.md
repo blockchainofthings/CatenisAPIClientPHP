@@ -2,7 +2,7 @@
 
 This library is used to make it easier to access the Catenis API services from PHP applications.
 
-This current release (4.1.0) targets version 0.10 of the Catenis API.
+This current release (5.0.0) targets version 0.11 of the Catenis API.
 
 ## Installation
 
