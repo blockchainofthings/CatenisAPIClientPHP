@@ -2360,7 +2360,7 @@ class ApiClient extends ApiPackage
      *      'direction' => [string]             (optional) The direction of the migration. Valid options: 'outward',
      *                                           'inward'
      *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
-     *                                           include. Valid options: 'pending', 'success', 'error'
+     *                                           include. Valid options: 'pending', 'interrupted', 'success', 'error'
      *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
      *                                           specified statuses should be excluded instead
      *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
@@ -3050,7 +3050,7 @@ class ApiClient extends ApiPackage
      *      'direction' => [string]             (optional) The direction of the migration. Valid options: 'outward',
      *                                           'inward'
      *      'status' => [string]                (optional) A single status or a comma-separated list of statuses to
-     *                                           include. Valid options: 'pending', 'success', 'error'
+     *                                           include. Valid options: 'pending', 'interrupted', 'success', 'error'
      *      'negateStatus' => [bool]            (optional, default: false) Boolean value indicating whether the
      *                                           specified statuses should be excluded instead
      *      'startDate' => [string|DateTime]    (optional) Date and time specifying the inclusive lower bound of the
