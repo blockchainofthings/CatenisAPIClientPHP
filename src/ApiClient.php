@@ -1100,7 +1100,7 @@ class ApiClient extends ApiPackage
         $now = new DateTime('now', new DateTimeZone('UTC'));
         $timeStamp = $now->format('Ymd\THis\Z');
 
-        if ($this->lastSignDate !== null && $this->lastSignDate->diff($now) < $this->signValidPeriod) {
+        if ($this->lastSignDate !== null && (clone $this->lastSignDate)->add($this->signValidPeriod) > $now) {
             $useSameSignKey = $this->lastSignKey !== null;
         } else {
             $this->lastSignDate = $now;
