@@ -1236,6 +1236,16 @@ class ApiClient extends ApiPackage
 
                 $serviceEndPointUrl = Uri::withQueryValue($serviceEndPointUrl, $key, $value);
             }
+
+            $query = $serviceEndPointUrl->getQuery();
+
+            if (strpos($query, '+') !== false) {
+                // Escape any '+' character found in query string so that it does not get converted to a blank
+                //  space by the Catenis server
+                $serviceEndPointUrl = $serviceEndPointUrl->withQuery(
+                    strtr($query, ['+' => '%2B'])
+                );
+            }
         }
 
         // Make sure that duplicate slashes that might occur in the URL (due to empty URL parameters)
