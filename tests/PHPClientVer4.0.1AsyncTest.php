@@ -10,27 +10,37 @@ use PHPUnit\Framework\TestCase;
 use React\EventLoop;
 use Catenis\ApiClient;
 
+if (empty($GLOBALS['__testEnv'])) {
+    // Load default (development) test environment
+    include_once __DIR__ . '/inc/DevTestEnv.php';
+}
+
 /**
  * Test cases for version 4.0.1 of Catenis API Client for PHP asynchronous methods
  */
 class PHPClientVer4d0d1AsyncTest extends TestCase
 {
-    protected static $device1 = [
-        'id' => 'drc3XdxNtzoucpw9xiRp'
-    ];
-    protected static $accessKey1 = '4c1749c8e86f65e0a73e5fb19f2aa9e74a716bc22d7956bf3072b4bc3fbfe2a0d138ad0d4bcfee251e'
-        . '4e5f54d6e92b8fd4eb36958a7aeaeeb51e8d2fcc4552c3';
-    protected static $device2 = [
-        'id' => 'd8YpQ7jgPBJEkBrnvp58'
-    ];
-    protected static $accessKey2 = '267a687115b9752f2eec5be849b570b29133528f928868d811bad5e48e97a1d62d432bab44803586b2'
-        . 'ac35002ec6f0eeaa98bec79b64f2f69b9cb0935b4df2c4';
+    protected static $testEnv;
+    protected static $device1;
+    protected static $accessKey1;
+    protected static $device2;
+    protected static $accessKey2;
     protected static $ctnClientAsync1;
     protected static $ctnClientAsync2;
     protected static $loop;
 
     public static function setUpBeforeClass(): void
     {
+        self::$testEnv = $GLOBALS['__testEnv'];
+        self::$device1 = [
+            'id' => self::$testEnv->device1->id
+        ];
+        self::$accessKey1 = self::$testEnv->device1->accessKey;
+        self::$device2 = [
+            'id' => self::$testEnv->device2->id
+        ];
+        self::$accessKey2 = self::$testEnv->device2->accessKey;
+
         echo "\nPHPClientVer4d0d1AsyncTest test class\n";
 
         echo 'Enter device #1 ID: [' . self::$device1['id'] . '] ';
@@ -66,14 +76,16 @@ class PHPClientVer4d0d1AsyncTest extends TestCase
 
         // Instantiate asynchronous Catenis API clients
         self::$ctnClientAsync1 = new ApiClient(self::$device1['id'], self::$accessKey1, [
-            'host' => 'localhost:3000',
-            'secure' => false,
+            'host' => self::$testEnv->host,
+            'environment' => self::$testEnv->environment,
+            'secure' => self::$testEnv->secure,
             'eventLoop' => self::$loop
         ]);
 
         self::$ctnClientAsync2 = new ApiClient(self::$device2['id'], self::$accessKey2, [
-            'host' => 'localhost:3000',
-            'secure' => false,
+            'host' => self::$testEnv->host,
+            'environment' => self::$testEnv->environment,
+            'secure' => self::$testEnv->secure,
             'eventLoop' => self::$loop
         ]);
     }
