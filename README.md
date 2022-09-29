@@ -1085,23 +1085,23 @@ try {
     
     if (isset($data->catenisNode)) {
         if (isset($data->catenisNode->allow)) {
-            echo 'Index of Catenis nodes with \'allow\' permission right: ' . implode($data->catenisNode->allow, ', ')
+            echo 'Index of Catenis nodes with \'allow\' permission right: ' . implode(', ', $data->catenisNode->allow)
                 . PHP_EOL;
         }
         
         if (isset($data->catenisNode->deny)) {
-            echo 'Index of Catenis nodes with \'deny\' permission right: ' . implode($data->catenisNode->deny, ', ')
+            echo 'Index of Catenis nodes with \'deny\' permission right: ' . implode(', ', $data->catenisNode->deny)
                 . PHP_EOL;
         }
     }
     
     if (isset($data->client)) {
         if (isset($data->client->allow)) {
-            echo 'ID of clients with \'allow\' permission right: ' . implode($data->client->allow, ', ') . PHP_EOL;
+            echo 'ID of clients with \'allow\' permission right: ' . implode(', ', $data->client->allow) . PHP_EOL;
         }
         
         if (isset($data->client->deny)) {
-            echo 'ID of clients with \'deny\' permission right: ' . implode($data->client->deny, ', ') . PHP_EOL;
+            echo 'ID of clients with \'deny\' permission right: ' . implode(', ', $data->client->deny) . PHP_EOL;
         }
     }
     
