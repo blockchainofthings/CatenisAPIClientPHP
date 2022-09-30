@@ -1091,6 +1091,190 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Set up request parameters for Issue Non-Fungible Asset API endpoint
+     *
+     * @param array|string $issuanceInfoOrContinuationToken
+     * @param array[]|null $nonFungibleTokens
+     * @param bool|null $isFinal
+     * @return array
+     */
+    private static function issueNonFungibleAssetRequestParams(
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        $jsonData = new stdClass();
+
+        if (is_array($issuanceInfoOrContinuationToken)) {
+            foreach ($issuanceInfoOrContinuationToken as $key => $val) {
+                if ($val !== null) {
+                    $jsonData->$key = $val;
+                }
+            }
+        } elseif (is_string($issuanceInfoOrContinuationToken)) {
+            $jsonData->continuationToken = $issuanceInfoOrContinuationToken;
+        }
+
+        if ($nonFungibleTokens !== null) {
+            $jsonData->nonFungibleTokens = $nonFungibleTokens;
+        }
+
+        if ($isFinal !== null) {
+            $jsonData->isFinal = $isFinal;
+        }
+
+        return [
+            'assets/non-fungible/issue',
+            $jsonData
+        ];
+    }
+
+    /**
+     * Set up request parameters for Reissue Non-Fungible Asset API endpoint
+     *
+     * @param string $assetId
+     * @param array|string|null $issuanceInfoOrContinuationToken
+     * @param array[]|null $nonFungibleTokens
+     * @param bool|null $isFinal
+     * @return array
+     */
+    private static function reissueNonFungibleAssetRequestParams(
+        $assetId,
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        $jsonData = new stdClass();
+
+        if (is_array($issuanceInfoOrContinuationToken)) {
+            foreach ($issuanceInfoOrContinuationToken as $key => $val) {
+                if ($val !== null) {
+                    $jsonData->$key = $val;
+                }
+            }
+        } elseif (is_string($issuanceInfoOrContinuationToken)) {
+            $jsonData->continuationToken = $issuanceInfoOrContinuationToken;
+        }
+
+        if ($nonFungibleTokens !== null) {
+            $jsonData->nonFungibleTokens = $nonFungibleTokens;
+        }
+
+        if ($isFinal !== null) {
+            $jsonData->isFinal = $isFinal;
+        }
+
+        return [
+            'assets/non-fungible/:assetId/issue',
+            $jsonData, [
+                'assetId' => $assetId
+            ]
+        ];
+    }
+    
+    /**
+     * Set up request parameters for Retrieve Non-Fungible Asset Issuance Progress API endpoint
+     *
+     * @param string $issuanceId
+     * @return array
+     */
+    private static function retrieveNonFungibleAssetIssuanceProgressRequestParams($issuanceId)
+    {
+        return [
+            'assets/non-fungible/issuance/:issuanceId', [
+                'issuanceId' => $issuanceId
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for Retrieve Non-Fungible Token API endpoint
+     *
+     * @param string $tokenId
+     * @param array|null $options
+     * @return array
+     */
+    private static function retrieveNonFungibleTokenRequestParams($tokenId, array $options = null)
+    {
+        $queryParams = null;
+
+        if ($options !== null) {
+            $filteredOptions = self::filterNonNullKeys($options);
+
+            if (!empty($filteredOptions)) {
+                $queryParams = $filteredOptions;
+            }
+        }
+
+        return [
+            'assets/non-fungible/tokens/:tokenId', [
+                'tokenId' => $tokenId
+            ],
+            $queryParams
+        ];
+    }
+
+    /**
+     * Set up request parameters for Retrieve Non-Fungible Token Retrieval Progress API endpoint
+     *
+     * @param string $tokenId
+     * @param string $retrievalId
+     * @return array
+     */
+    private static function retrieveNonFungibleTokenRetrievalProgressRequestParams($tokenId, $retrievalId)
+    {
+        return [
+            'assets/non-fungible/tokens/:tokenId/retrieval/:retrievalId', [
+                'tokenId' => $tokenId,
+                'retrievalId' => $retrievalId
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for Transfer Non-Fungible Token API endpoint
+     *
+     * @param string $tokenId
+     * @param array $receivingDevice
+     * @param bool|null $async
+     * @return array
+     */
+    private static function transferNonFungibleTokenRequestParams($tokenId, array $receivingDevice, $async = null)
+    {
+        $jsonData = new stdClass();
+
+        $jsonData->receivingDevice = $receivingDevice;
+
+        if ($async !== null) {
+            $jsonData->async = $async;
+        }
+
+        return [
+            'assets/non-fungible/tokens/:tokenId/transfer',
+            $jsonData, [
+                'tokenId' => $tokenId
+            ]
+        ];
+    }
+
+    /**
+     * Set up request parameters for Retrieve Non-Fungible Token Transfer Progress API endpoint
+     *
+     * @param string $tokenId
+     * @param string $transferId
+     * @return array
+     */
+    private static function retrieveNonFungibleTokenTransferProgressRequestParams($tokenId, $transferId)
+    {
+        return [
+            'assets/non-fungible/tokens/:tokenId/transfer/:transferId', [
+                'tokenId' => $tokenId,
+                'transferId' => $transferId
+            ]
+        ];
+    }
+
+    /**
      * Signs an HTTP request to an API endpoint adding the proper HTTP headers
      * @param RequestInterface &$request - The request to be signed
      * @throws Exception
@@ -1483,7 +1667,7 @@ class ApiClient extends ApiPackage
      *                                      Valid values: 'prod', 'sandbox' (or 'beta')
      *      'secure' => [bool]           - (optional, default: true) Indicates whether a secure connection (HTTPS)
      *                                      should be used
-     *      'version' => [string]        - (optional, default: '0.11') Version of Catenis API to target
+     *      'version' => [string]        - (optional, default: '0.12') Version of Catenis API to target
      *      'useCompression' => [bool]   - (optional, default: true) Indicates whether request/response body should
      *                                      be compressed
      *      'compressThreshold' => [int] - (optional, default: 1024) Minimum size, in bytes, of request body for it
@@ -1506,7 +1690,7 @@ class ApiClient extends ApiPackage
         $hostName = 'catenis.io';
         $subdomain = '';
         $secure = true;
-        $version = '0.11';
+        $version = '0.12';
         $timeout = 0;
         $httpClientHandler = null;
 
@@ -2395,6 +2579,242 @@ class ApiClient extends ApiPackage
     }
 
     /**
+     * Creates a new non-fungible asset, and issues its initial non-fungible tokens
+     *
+     * @param array|string $issuanceInfoOrContinuationToken - A map (associative array), specifying the required info
+     *                                          for issuing a new asset, with the keys listed below. Otherwise, if a
+     *                                          string value is passed, it is assumed to be an asset issuance
+     *                                          continuation token, which signals a continuation call and should match
+     *                                          the value returned by the previous call.
+     *      'assetInfo' => [array]                  (optional) A map (associative array), specifying the properties of
+     *                                               the new non-fungible asset to create, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible asset
+     *          'description' => [string]               (optional) A description of the non-fungible asset
+     *          'canReissue' => [bool]                  Indicates whether more non-fungible tokens of that non-fungible
+     *                                                   asset can be issued at a later time
+     *      'encryptNFTContents' => [bool]          (optional, default: true) Indicates whether the contents of the
+     *                                               non-fungible tokens being issued should be encrypted before being
+     *                                               stored
+     *      'holdingDevices' => [array|array[]]     (optional) A list of maps (associative arrays), specifying the
+     *                                               devices that will hold the issued non-fungible tokens, with the
+     *                                               keys listed below. Optionally, a single map can be passed instead
+     *                                               specifying a single device that will hold all the issued tokens.
+     *          'id' => [string]                        The ID of the holding device. Should be a device ID unless
+     *                                                   isProdUniqueId is set
+     *          'isProdUniqueId' => [bool]              (optional, default: false) Indicates whether the supplied ID is
+     *                                                   a product unique ID
+     *      'async' => [bool]                       (optional, default: false) Indicates whether processing should be
+     *                                               done asynchronously
+     * @param array[]|null $nonFungibleTokens - A list of maps (associative arrays), specifying the properties of the
+     *                                           non-fungible tokens to be issued, with the following keys:
+     *      'metadata' => [array]                   (optional) A map (associative array), specifying the properties of
+     *                                               the non-fungible token to issue, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible token
+     *          'description' => [string]               (optional) A description of the non-fungible token
+     *          'custom' => [array]                     (optional) A map (associative array), specifying user defined,
+     *                                                   custom properties of the non-fungible token, with the following
+     *                                                   keys:
+     *              'sensitiveProps' => [array]             (optional) A map (associative array), specifying user
+     *                                                       defined, sensitive properties of the non-fungible token,
+     *                                                       with the following keys:
+     *                  '<prop_name> => [mixed]                 A custom, sensitive property identified by prop_name
+     *              'prop_name' => [mixed]                  A custom property identified by prop_name
+     *      'contents' => [array]                   (optional) A map (associative array), specifying the contents of the
+     *                                               non-fungible token to issue, with the following keys:
+     *          'data' => [string]                      An additional chunk of data of the non-fungible token's contents
+     *          'encoding' => 'string'                  (optional, default: 'base64') The encoding of the contents data
+     *                                                   chunk. Valid options: 'utf8', 'base64', 'hex'
+     * @param bool|null $isFinal - (optional, default: true) Indicates whether this is the final call of the asset
+     *                              issuance. There should be no more continuation calls after this is set
+     * @return stdClass - An object representing the JSON formatted data returned by the Issue Non-Fungible Asset
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function issueNonFungibleAsset(
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        return $this->sendPostRequest(...self::issueNonFungibleAssetRequestParams(
+            $issuanceInfoOrContinuationToken,
+            $nonFungibleTokens,
+            $isFinal
+        ));
+    }
+
+    /**
+     * Issues more non-fungible tokens for a previously created non-fungible asset
+     *
+     * @param string $assetId - The ID of the non-fungible asset for which more non-fungible tokens should be issued
+     * @param array|string $issuanceInfoOrContinuationToken - (optional) A map (associative array), specifying the
+     *                                          required info for issuing more non-fungible tokens of an existing
+     *                                          non-fungible asset, with the keys listed below. Otherwise, if a string
+     *                                          value is passed, it is assumed to be an asset issuance continuation
+     *                                          token, which signals a continuation call and should match the value
+     *                                          returned by the previous call.
+     *      'encryptNFTContents' => [bool]          (optional, default: true) Indicates whether the contents of the
+     *                                               non-fungible tokens being issued should be encrypted before being
+     *                                               stored
+     *      'holdingDevices' => [array|array[]]     (optional) A list of maps (associative arrays), specifying the
+     *                                               devices that will hold the issued non-fungible tokens, with the
+     *                                               keys listed below. Optionally, a single map can be passed instead
+     *                                               specifying a single device that will hold all the issued tokens.
+     *          'id' => [string]                        The ID of the holding device. Should be a device ID unless
+     *                                                   isProdUniqueId is set
+     *          'isProdUniqueId' => [bool]              (optional, default: false) Indicates whether the supplied ID is
+     *                                                   a product unique ID
+     *      'async' => [bool]                       (optional, default: false) Indicates whether processing should be
+     *                                               done asynchronously
+     * @param array[]|null $nonFungibleTokens - A list of maps (associative arrays), specifying the properties of the
+     *                                           non-fungible tokens to be issued, with the following keys:
+     *      'metadata' => [array]                   (optional) A map (associative array), specifying the properties of
+     *                                               the non-fungible token to issue, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible token
+     *          'description' => [string]               (optional) A description of the non-fungible token
+     *          'custom' => [array]                     (optional) A map (associative array), specifying user defined,
+     *                                                   custom properties of the non-fungible token, with the following
+     *                                                   keys:
+     *              'sensitiveProps' => [array]             (optional) A map (associative array), specifying user
+     *                                                       defined, sensitive properties of the non-fungible token,
+     *                                                       with the following keys:
+     *                  '<prop_name> => [mixed]                 A custom, sensitive property identified by prop_name
+     *              'prop_name' => [mixed]                  A custom property identified by prop_name
+     *      'contents' => [array]                   (optional) A map (associative array), specifying the contents of the
+     *                                               non-fungible token to issue, with the following keys:
+     *          'data' => [string]                      An additional chunk of data of the non-fungible token's contents
+     *          'encoding' => 'string'                  (optional, default: 'base64') The encoding of the contents data
+     *                                                   chunk. Valid options: 'utf8', 'base64', 'hex'
+     * @param bool|null $isFinal - (optional, default: true) Indicates whether this is the final call of the asset
+     *                              issuance. There should be no more continuation calls after this is set
+     * @return stdClass - An object representing the JSON formatted data returned by the Issue Non-Fungible Asset
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function reissueNonFungibleAsset(
+        $assetId,
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        return $this->sendPostRequest(...self::reissueNonFungibleAssetRequestParams(
+            $assetId,
+            $issuanceInfoOrContinuationToken,
+            $nonFungibleTokens,
+            $isFinal
+        ));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible asset issuance
+     *
+     * @param string $issuanceId - The ID of the non-fungible asset issuance the processing progress of which should be
+     *                              retrieved
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Non-Fungible Asset
+     *                     Issuance Progress API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveNonFungibleAssetIssuanceProgress($issuanceId)
+    {
+        return $this->sendGetRequest(...self::retrieveNonFungibleAssetIssuanceProgressRequestParams($issuanceId));
+    }
+
+    /**
+     * Retrieves the data associated with a non-fungible token
+     *
+     * @param string $tokenId - The ID of the non-fungible token the data of which should be retrieved
+     * @param array|null $options - (optional) A map (associative array) with the following keys:
+     *      'retrieveContents' => [bool]        (optional, default: true) Indicates whether the contents of the
+     *                                           non-fungible token should be retrieved or not
+     *      'contentsOnly' => [bool]            (optional, default: false) Indicates whether only the contents of the
+     *                                           non-fungible token should be retrieved
+     *      'contentsEncoding' => [string]      (optional, default: 'base64') The encoding with which the retrieved
+     *                                           chunk of non-fungible token contents data will be encoded. Valid
+     *                                           values: 'utf8', 'base64', 'hex'
+     *      'dataChunkSize' => [int]            (optional) Numeric value representing the size, in bytes, of the
+     *                                           largest chunk of non-fungible token contents data that should be
+     *                                           returned
+     *      'async' => [bool]                   (optional, default: false) Indicates whether the processing should be
+     *                                           done asynchronously
+     *      'continuationToken' => [string]     (optional) A non-fungible token retrieval continuation token, which
+     *                                           signals a continuation call, and should match the value returned by
+     *                                           the previous call
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Non-Fungible Token
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveNonFungibleToken($tokenId, array $options = null)
+    {
+        return $this->sendGetRequest(...self::retrieveNonFungibleTokenRequestParams($tokenId, $options));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible token retrieval
+     *
+     * @param string $tokenId - The ID of the non-fungible token whose data is being retrieved
+     * @param string $retrievalId - The ID of the non-fungible token retrieval the processing progress of which should
+     *                               be retrieved
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Non-Fungible Token
+     *                     Retrieval Progress API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveNonFungibleTokenRetrievalProgress($tokenId, $retrievalId)
+    {
+        return $this->sendGetRequest(...self::retrieveNonFungibleTokenRetrievalProgressRequestParams(
+            $tokenId,
+            $retrievalId
+        ));
+    }
+
+    /**
+     * Transfers a non-fungible token to a virtual device
+     *
+     * @param string $tokenId - The ID of the non-fungible token to transfer
+     * @param array $receivingDevice - A map (associative array), specifying the device to which the non-fungible token
+     *                                  is to be transferred, with the following keys:
+     *      'id' => [string]                    The ID of the holding device. Should be a device ID unless
+     *                                           isProdUniqueId is set
+     *      'isProdUniqueId' => [bool]          (optional, default: false) Indicates whether the supplied ID is a
+     *                                           product unique ID
+     * @param bool|null $async - (optional, default: false) Indicates whether processing should be done asynchronously
+     * @return stdClass - An object representing the JSON formatted data returned by the Transfer Non-Fungible Token
+     *                     API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function transferNonFungibleToken($tokenId, array $receivingDevice, $async = null)
+    {
+        return $this->sendPostRequest(...self::transferNonFungibleTokenRequestParams(
+            $tokenId,
+            $receivingDevice,
+            $async
+        ));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible token retrieval
+     *
+     * @param string $tokenId - The ID of the non-fungible token that is being transferred
+     * @param string $transferId - The ID of the non-fungible token transfer the processing progress of which should be
+     *                              retrieved
+     * @return stdClass - An object representing the JSON formatted data returned by the Retrieve Non-Fungible Token
+     *                     Transfer Progress API endpoint
+     * @throws CatenisClientException
+     * @throws CatenisApiException
+     */
+    public function retrieveNonFungibleTokenTransferProgress($tokenId, $transferId)
+    {
+        return $this->sendGetRequest(...self::retrieveNonFungibleTokenTransferProgressRequestParams(
+            $tokenId,
+            $transferId
+        ));
+    }
+
+    /**
      * Create WebSocket Notification Channel for a given notification event
      * @param string $eventName - Name of Catenis notification event
      * @return WsNotifyChannel - Catenis notification channel object
@@ -3079,5 +3499,220 @@ class ApiClient extends ApiPackage
     public function listAssetMigrationsAsync($selector = null, $limit = null, $skip = null)
     {
         return $this->sendGetRequestAsync(...self::listAssetMigrationsRequestParams($selector, $limit, $skip));
+    }
+
+    /**
+     * Creates a new non-fungible asset, and issues its initial non-fungible tokens asynchronously
+     *
+     * @param array|string $issuanceInfoOrContinuationToken - A map (associative array), specifying the required info
+     *                                          for issuing a new asset, with the keys listed below. Otherwise, if a
+     *                                          string value is passed, it is assumed to be an asset issuance
+     *                                          continuation token, which signals a continuation call and should match
+     *                                          the value returned by the previous call.
+     *      'assetInfo' => [array]                  (optional) A map (associative array), specifying the properties of
+     *                                               the new non-fungible asset to create, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible asset
+     *          'description' => [string]               (optional) A description of the non-fungible asset
+     *          'canReissue' => [bool]                  Indicates whether more non-fungible tokens of that non-fungible
+     *                                                   asset can be issued at a later time
+     *      'encryptNFTContents' => [bool]          (optional, default: true) Indicates whether the contents of the
+     *                                               non-fungible tokens being issued should be encrypted before being
+     *                                               stored
+     *      'holdingDevices' => [array|array[]]     (optional) A list of maps (associative arrays), specifying the
+     *                                               devices that will hold the issued non-fungible tokens, with the
+     *                                               keys listed below. Optionally, a single map can be passed instead
+     *                                               specifying a single device that will hold all the issued tokens.
+     *          'id' => [string]                        The ID of the holding device. Should be a device ID unless
+     *                                                   isProdUniqueId is set
+     *          'isProdUniqueId' => [bool]              (optional, default: false) Indicates whether the supplied ID is
+     *                                                   a product unique ID
+     *      'async' => [bool]                       (optional, default: false) Indicates whether processing should be
+     *                                               done asynchronously
+     * @param array[]|null $nonFungibleTokens - A list of maps (associative arrays), specifying the properties of the
+     *                                           non-fungible tokens to be issued, with the following keys:
+     *      'metadata' => [array]                   (optional) A map (associative array), specifying the properties of
+     *                                               the non-fungible token to issue, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible token
+     *          'description' => [string]               (optional) A description of the non-fungible token
+     *          'custom' => [array]                     (optional) A map (associative array), specifying user defined,
+     *                                                   custom properties of the non-fungible token, with the following
+     *                                                   keys:
+     *              'sensitiveProps' => [array]             (optional) A map (associative array), specifying user
+     *                                                       defined, sensitive properties of the non-fungible token,
+     *                                                       with the following keys:
+     *                  '<prop_name> => [mixed]                 A custom, sensitive property identified by prop_name
+     *              'prop_name' => [mixed]                  A custom property identified by prop_name
+     *      'contents' => [array]                   (optional) A map (associative array), specifying the contents of the
+     *                                               non-fungible token to issue, with the following keys:
+     *          'data' => [string]                      An additional chunk of data of the non-fungible token's contents
+     *          'encoding' => 'string'                  (optional, default: 'base64') The encoding of the contents data
+     *                                                   chunk. Valid options: 'utf8', 'base64', 'hex'
+     * @param bool|null $isFinal - (optional, default: true) Indicates whether this is the final call of the asset
+     *                              issuance. There should be no more continuation calls after this is set
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function issueNonFungibleAssetAsync(
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        return $this->sendPostRequestAsync(...self::issueNonFungibleAssetRequestParams(
+            $issuanceInfoOrContinuationToken,
+            $nonFungibleTokens,
+            $isFinal
+        ));
+    }
+
+    /**
+     * Issues more non-fungible tokens for a previously created non-fungible asset asynchronously
+     *
+     * @param string $assetId - The ID of the non-fungible asset for which more non-fungible tokens should be issued
+     * @param array|string $issuanceInfoOrContinuationToken - (optional) A map (associative array), specifying the
+     *                                          required info for issuing more non-fungible tokens of an existing
+     *                                          non-fungible asset, with the keys listed below. Otherwise, if a string
+     *                                          value is passed, it is assumed to be an asset issuance continuation
+     *                                          token, which signals a continuation call and should match the value
+     *                                          returned by the previous call.
+     *      'encryptNFTContents' => [bool]          (optional, default: true) Indicates whether the contents of the
+     *                                               non-fungible tokens being issued should be encrypted before being
+     *                                               stored
+     *      'holdingDevices' => [array|array[]]     (optional) A list of maps (associative arrays), specifying the
+     *                                               devices that will hold the issued non-fungible tokens, with the
+     *                                               keys listed below. Optionally, a single map can be passed instead
+     *                                               specifying a single device that will hold all the issued tokens.
+     *          'id' => [string]                        The ID of the holding device. Should be a device ID unless
+     *                                                   isProdUniqueId is set
+     *          'isProdUniqueId' => [bool]              (optional, default: false) Indicates whether the supplied ID is
+     *                                                   a product unique ID
+     *      'async' => [bool]                       (optional, default: false) Indicates whether processing should be
+     *                                               done asynchronously
+     * @param array[]|null $nonFungibleTokens - A list of maps (associative arrays), specifying the properties of the
+     *                                           non-fungible tokens to be issued, with the following keys:
+     *      'metadata' => [array]                   (optional) A map (associative array), specifying the properties of
+     *                                               the non-fungible token to issue, with the following keys:
+     *          'name' => [string]                      The name of the non-fungible token
+     *          'description' => [string]               (optional) A description of the non-fungible token
+     *          'custom' => [array]                     (optional) A map (associative array), specifying user defined,
+     *                                                   custom properties of the non-fungible token, with the following
+     *                                                   keys:
+     *              'sensitiveProps' => [array]             (optional) A map (associative array), specifying user
+     *                                                       defined, sensitive properties of the non-fungible token,
+     *                                                       with the following keys:
+     *                  '<prop_name> => [mixed]                 A custom, sensitive property identified by prop_name
+     *              'prop_name' => [mixed]                  A custom property identified by prop_name
+     *      'contents' => [array]                   (optional) A map (associative array), specifying the contents of the
+     *                                               non-fungible token to issue, with the following keys:
+     *          'data' => [string]                      An additional chunk of data of the non-fungible token's contents
+     *          'encoding' => 'string'                  (optional, default: 'base64') The encoding of the contents data
+     *                                                   chunk. Valid options: 'utf8', 'base64', 'hex'
+     * @param bool|null $isFinal - (optional, default: true) Indicates whether this is the final call of the asset
+     *                              issuance. There should be no more continuation calls after this is set
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function reissueNonFungibleAssetAsync(
+        $assetId,
+        $issuanceInfoOrContinuationToken,
+        array $nonFungibleTokens = null,
+        $isFinal = null
+    ) {
+        return $this->sendPostRequestAsync(...self::reissueNonFungibleAssetRequestParams(
+            $assetId,
+            $issuanceInfoOrContinuationToken,
+            $nonFungibleTokens,
+            $isFinal
+        ));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible asset issuance asynchronously
+     *
+     * @param string $issuanceId - The ID of the non-fungible asset issuance the processing progress of which should be
+     *                              retrieved
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function retrieveNonFungibleAssetIssuanceProgressAsync($issuanceId)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveNonFungibleAssetIssuanceProgressRequestParams($issuanceId));
+    }
+
+    /**
+     * Retrieves the data associated with a non-fungible token asynchronously
+     *
+     * @param string $tokenId - The ID of the non-fungible token the data of which should be retrieved
+     * @param array|null $options - (optional) A map (associative array) with the following keys:
+     *      'retrieveContents' => [bool]        (optional, default: true) Indicates whether the contents of the
+     *                                           non-fungible token should be retrieved or not
+     *      'contentsOnly' => [bool]            (optional, default: false) Indicates whether only the contents of the
+     *                                           non-fungible token should be retrieved
+     *      'contentsEncoding' => [string]      (optional, default: 'base64') The encoding with which the retrieved
+     *                                           chunk of non-fungible token contents data will be encoded. Valid
+     *                                           values: 'utf8', 'base64', 'hex'
+     *      'dataChunkSize' => [int]            (optional) Numeric value representing the size, in bytes, of the
+     *                                           largest chunk of non-fungible token contents data that should be
+     *                                           returned
+     *      'async' => [bool]                   (optional, default: false) Indicates whether the processing should be
+     *                                           done asynchronously
+     *      'continuationToken' => [string]     (optional) A non-fungible token retrieval continuation token, which
+     *                                           signals a continuation call, and should match the value returned by
+     *                                           the previous call
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function retrieveNonFungibleTokenAsync($tokenId, array $options = null)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveNonFungibleTokenRequestParams($tokenId, $options));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible token retrieval asynchronously
+     *
+     * @param string $tokenId - The ID of the non-fungible token whose data is being retrieved
+     * @param string $retrievalId - The ID of the non-fungible token retrieval the processing progress of which should
+     *                               be retrieved
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function retrieveNonFungibleTokenRetrievalProgressAsync($tokenId, $retrievalId)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveNonFungibleTokenRetrievalProgressRequestParams(
+            $tokenId,
+            $retrievalId
+        ));
+    }
+
+    /**
+     * Transfers a non-fungible token to a virtual device asynchronously
+     *
+     * @param string $tokenId - The ID of the non-fungible token to transfer
+     * @param array $receivingDevice - A map (associative array), specifying the device to which the non-fungible token
+     *                                  is to be transferred, with the following keys:
+     *      'id' => [string]                    The ID of the holding device. Should be a device ID unless
+     *                                           isProdUniqueId is set
+     *      'isProdUniqueId' => [bool]          (optional, default: false) Indicates whether the supplied ID is a
+     *                                           product unique ID
+     * @param bool|null $async - (optional, default: false) Indicates whether processing should be done asynchronously
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function transferNonFungibleTokenAsync($tokenId, array $receivingDevice, $async = null)
+    {
+        return $this->sendPostRequestAsync(...self::transferNonFungibleTokenRequestParams(
+            $tokenId,
+            $receivingDevice,
+            $async
+        ));
+    }
+
+    /**
+     * Retrieves the current progress of an asynchronous non-fungible token retrieval asynchronously
+     *
+     * @param string $tokenId - The ID of the non-fungible token that is being transferred
+     * @param string $transferId - The ID of the non-fungible token transfer the processing progress of which should be
+     *                              retrieved
+     * @return PromiseInterface - A promise representing the asynchronous processing
+     */
+    public function retrieveNonFungibleTokenTransferProgressAsync($tokenId, $transferId)
+    {
+        return $this->sendGetRequestAsync(...self::retrieveNonFungibleTokenTransferProgressRequestParams(
+            $tokenId,
+            $transferId
+        ));
     }
 }

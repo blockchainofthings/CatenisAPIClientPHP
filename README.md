@@ -2,7 +2,7 @@
 
 This library is used to make it easier to access the Catenis API services from PHP applications.
 
-This current release (5.0.0) targets version 0.11 of the Catenis API.
+This current release (5.0.0) targets version 0.12 of the Catenis API.
 
 ## Installation
 
@@ -94,7 +94,7 @@ The following options can be used when instantiating the client:
 - **host** \[string\] - (optional, default: <b>*'catenis.io'*</b>) Host name (with optional port) of target Catenis API server.
 - **environment** \[string\] - (optional, default: <b>*'prod'*</b>) Environment of target Catenis API server. Valid values: *'prod'*, *'sandbox'*.
 - **secure** \[boolean\] - (optional, default: ***true***) Indicates whether a secure connection (HTTPS) should be used.
-- **version** \[string\] - (optional, default: <b>*'0.11'*</b>) Version of Catenis API to target.
+- **version** \[string\] - (optional, default: <b>*'0.12'*</b>) Version of Catenis API to target.
 - **useCompression** \[boolean\] - (optional, default: ***true***) Indicates whether request/response body should be compressed.
 - **compressThreshold** \[integer\] - (optional, default: ***1024***) Minimum size, in bytes, of request body for it to be compressed.
 - **timeout** \[float|integer\] - (optional, default: ***0, no timeout***) Timeout, in seconds, to wait for a response.
@@ -673,6 +673,597 @@ try {
 }
 ```
 
+### Creating a new non-fungible asset and issuing its (initial) non-fungible tokens
+
+#### Passing non-fungible token contents in a single call
+
+```php
+try {
+    $data = $ctnApiClient->issueNonFungibleAsset([
+        'assetInfo' => [
+            'name' => 'Catenis NFA 1',
+            'description' => 'Non-fungible asset #1 for testing',
+            'canReissue' => true
+        ]
+    ], [
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 1',
+                'description' => 'First token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of first token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ],
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 2',
+                'description' => 'Second token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of second token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ]
+    ]);
+
+    // Process returned data
+    echo 'ID of newly created non-fungible asset: ' . $data->assetId . PHP_EOL;
+    echo 'IDs of newly issued non-fungible tokens: ' . implode(', ', $data->nfTokenIds) . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Passing non-fungible token contents in multiple calls
+
+```php
+$issuanceInfo = [
+    'assetInfo' => [
+        'name' => 'Catenis NFA 1',
+        'description' => 'Non-fungible asset #1 for testing',
+        'canReissue' => true
+    ]
+];
+$nftMetadata = [
+    [
+        'name' => 'NFA1 NFT 1',
+        'description' => 'First token of Catenis non-fungible asset #1'
+    ],
+    [
+        'name' => 'NFA1 NFT 2',
+        'description' => 'Second token of Catenis non-fungible asset #1'
+    ]
+];
+$nftContents = [
+    [
+        [
+            'data' => 'Contents of first token of Catenis non-fungible asset #1',
+            'encoding' => 'utf8'
+        ]
+    ],
+    [
+        [
+            'data' => 'Here is the contents of the second token of Catenis non-fungible asset #1 (part #1)',
+            'encoding' => 'utf8'
+        ],
+        [
+            'data' => '; and here is the last part of the contents of the second token of Catenis non-fungible asset #1.',
+            'encoding' => 'utf8'
+        ]
+    ]
+];
+
+try {
+    $continuationToken = null;
+    $data = null;
+    $nfTokens = null;
+    $callIdx = -1;
+
+    do {
+        $nfTokens = null;
+        $callIdx++;
+
+        if ($continuationToken === null) {
+            foreach ($nftMetadata as $tokenIdx => $metadata) {
+                $nfToken = [
+                    'metadata' => $metadata
+                ];
+
+                if (isset($nftContents[$tokenIdx])) {
+                    $nfToken['contents'] = $nftContents[$tokenIdx][$callIdx];
+                }
+
+                $nfTokens[] = $nfToken;
+            }
+        }
+        else {  // Continuation call
+            foreach ($nftContents as $tokenIdx => $contents) {
+                $nfTokens[] = isset($contents) && $callIdx < count($callIdx)
+                    ? ['contents' => $contents[$callIdx]]
+                    : null;
+            }
+
+            if (is_array($nfTokens)) {
+                $allNull = true;
+
+                foreach ($nfTokens as $tokenIdx => $nfToken) {
+                    if ($nfToken !== null) {
+                        $allNull = false;
+                        break;
+                    }
+                }
+
+                if ($allNull) {
+                    $nfTokens = null;
+                }
+            }
+        }
+
+        $data = $ctnApiClient->issueNonFungibleAsset(
+            $continuationToken !== null ? $continuationToken : $issuanceInfo,
+            $nfTokens,
+            !isset($nfTokens)
+        );
+
+        $continuationToken = isset($data->continuationToken)
+            ? $data->continuationToken
+            : null;
+    } while ($continuationToken !== null);
+
+    // Process returned data
+    echo 'ID of newly created non-fungible asset: ' . $data->assetId . PHP_EOL;
+    echo 'IDs of newly issued non-fungible tokens: ' . implode(', ', $data->nfTokenIds) . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing issuance asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->issueNonFungibleAsset([
+        'assetInfo' => [
+            'name' => 'Catenis NFA 1',
+            'description' => 'Non-fungible asset #1 for testing',
+            'canReissue' => true
+        ],
+        'async' => true
+    ], [
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 1',
+                'description' => 'First token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of first token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ],
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 2',
+                'description' => 'Second token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of second token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ]
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $assetIssuanceId = $data->assetIssuanceId;
+    $done = false;
+    $result = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveNonFungibleAssetIssuanceProgress($assetIssuanceId);
+
+        // Process returned data
+        echo 'Percent processed: ', $data->progress->percentProcessed . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Get result
+                $result = $data->result;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+
+            $done = true;
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (!$done);
+
+    if ($result !== null) {
+        echo 'ID of newly created non-fungible asset: ' . $result->assetId . PHP_EOL;
+        echo 'IDs of newly issued non-fungible tokens: ' . implode(', ', $result->nfTokenIds) . PHP_EOL;
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Issuing more non-fungible tokens for a previously created non-fungible asset
+
+#### Passing non-fungible token contents in a single call
+
+```php
+try {
+    $data = $ctnApiClient->reissueNonFungibleAsset($assetId, null, [
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 3',
+                'description' => 'Third token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of third token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ],
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 4',
+                'description' => 'Forth token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of forth token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ]
+    ]);
+
+    // Process returned data
+    echo 'IDs of newly issued non-fungible tokens: ' . $data->nfTokenIds . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Passing non-fungible token contents in multiple calls
+
+```php
+$nftMetadata = [
+    [
+        'name' => 'NFA1 NFT 3',
+        'description' => 'Third token of Catenis non-fungible asset #1'
+    ],
+    [
+        'name' => 'NFA1 NFT 4',
+        'description' => 'Forth token of Catenis non-fungible asset #1'
+    ]
+];
+$nftContents = [
+    [
+        [
+            'data' => 'Contents of third token of Catenis non-fungible asset #1',
+            'encoding' => 'utf8'
+        ]
+    ],
+    [
+        [
+            'data' => 'Here is the contents of the forth token of Catenis non-fungible asset #1 (part #1)',
+            'encoding' => 'utf8'
+        ],
+        [
+            'data' => '; and here is the last part of the contents of the forth token of Catenis non-fungible asset #1.',
+            'encoding' => 'utf8'
+        ]
+    ]
+];
+
+try {
+    $continuationToken = null;
+    $data = null;
+    $nfTokens = null;
+    $callIdx = -1;
+
+    do {
+        $nfTokens = null;
+        $callIdx++;
+
+        if ($continuationToken === null) {
+            foreach ($nftMetadata as $tokenIdx => $metadata) {
+                $nfToken = [
+                    'metadata' => $metadata
+                ];
+
+                if (isset($nftContents[$tokenIdx])) {
+                    $nfToken['contents'] = $nftContents[$tokenIdx][$callIdx];
+                }
+
+                $nfTokens[] = $nfToken;
+            }
+        }
+        else {  // Continuation call
+            foreach ($nftContents as $tokenIdx => $contents) {
+                $nfTokens[] = isset($contents) && $callIdx < count($callIdx)
+                    ? ['contents' => $contents[$callIdx]]
+                    : null;
+            }
+
+            if (is_array($nfTokens)) {
+                $allNull = true;
+
+                foreach ($nfTokens as $tokenIdx => $nfToken) {
+                    if ($nfToken !== null) {
+                        $allNull = false;
+                        break;
+                    }
+                }
+
+                if ($allNull) {
+                    $nfTokens = null;
+                }
+            }
+        }
+
+        $data = $ctnApiClient->reissueNonFungibleAsset(
+            $assetId,
+            $continuationToken,
+            $nfTokens,
+            !isset($nfTokens)
+        );
+
+        $continuationToken = isset($data->continuationToken)
+            ? $data->continuationToken
+            : null;
+    } while ($continuationToken !== null);
+
+    // Process returned data
+    echo 'IDs of newly issued non-fungible tokens: ' . implode(', ', $data->nfTokenIds) . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing issuance asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->reissueNonFungibleAsset($assetId, [
+        'async' => true
+    ], [
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 3',
+                'description' => 'Third token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of third token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ],
+        [
+            'metadata' => [
+                'name' => 'NFA1 NFT 4',
+                'description' => 'Forth token of Catenis non-fungible asset #1'
+            ],
+            'contents' => [
+                'data' => 'Contents of forth token of Catenis non-fungible asset #1',
+                'encoding' => 'utf8'
+            ]
+        ]
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $assetIssuanceId = $data->assetIssuanceId;
+    $done = false;
+    $result = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveNonFungibleAssetIssuanceProgress($assetIssuanceId);
+
+        // Process returned data
+        echo 'Percent processed: ', $data->progress->percentProcessed . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Get result
+                $result = $data->result;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+
+            $done = true;
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (!$done);
+
+    if ($result !== null) {
+        echo 'IDs of newly issued non-fungible tokens: ' . implode(', ', $result->nfTokenIds) . PHP_EOL;
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Retrieving the data associated with a non-fungible token
+
+#### Doing retrieval synchronously
+
+```php
+try {
+    $continuationToken = null;
+    $data = null;
+    $nfTokenData = null;
+
+    do {
+        $data = $ctnApiClient->retrieveNonFungibleToken(
+            $tokenId,
+            isset($continuationToken) ? ['continuationToken' => $continuationToken] : null
+        );
+
+        if (!isset($nfTokenData)) {
+            // Get token data
+            $nfTokenData = (object)[
+                'assetId' => $data->nonFungibleToken->assetId,
+                'metadata' => $data->nonFungibleToken->metadata,
+                'contents' => [$data->nonFungibleToken->contents->data]
+            ];
+        } else {
+            // Add next contents part to token data
+            $nfTokenData->contents[] = $data->nonFungibleToken->contents->data;
+        }
+
+        $continuationToken = isset($data->continuationToken)
+            ? $data->continuationToken
+            : null;
+    } while ($continuationToken !== null);
+
+    // Process returned data
+    echo 'Non-fungible token data: ' . print_r($nfTokenData, true);
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing retrieval asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->retrieveNonFungibleToken($tokenId, [
+        'async' => true
+    ]);
+
+    // Start pooling for asynchronous processing progress
+    $tokenRetrievalId = $data->tokenRetrievalId;
+    $done = false;
+    $continuationToken = null;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveNonFungibleTokenRetrievalProgress($tokenId, $tokenRetrievalId);
+
+        // Process returned data
+        echo 'Bytes already retrieved: ', $data->progress->bytesRetrieved . PHP_EOL;
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Prepare to finish retrieving the non-fungible token data
+                $continuationToken = $data->continuationToken;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+
+            $done = true;
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (!$done);
+
+    if ($continuationToken !== null) {
+        // Finish retrieving the non-fungible token data
+        $nfTokenData = null;
+
+        do {
+            $data = $ctnApiClient->retrieveNonFungibleToken(
+                $tokenId,
+                $continuationToken
+            );
+
+            if (!isset($nfTokenData)) {
+                // Get token data
+                $nfTokenData = (object)[
+                    'assetId' => $data->nonFungibleToken->assetId,
+                    'metadata' => $data->nonFungibleToken->metadata,
+                    'contents' => [$data->nonFungibleToken->contents->data]
+                ];
+            } else {
+                // Add next contents part to token data
+                $nfTokenData->contents[] = $data->nonFungibleToken->contents->data;
+            }
+
+            $continuationToken = isset($data->continuationToken)
+                ? $data->continuationToken
+                : null;
+        } while ($continuationToken !== null);
+
+        // Process returned data
+        echo 'Non-fungible token data: ' . print_r($nfTokenData, true);
+    }
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+### Transferring a non-fungible token to another device
+
+#### Doing transfer synchronously
+
+```php
+try {
+    $data = $ctnApiClient->transferNonFungibleToken($tokenId, [
+        'id' => $otherDeviceId,
+        'isProdUniqueId' => false
+    ]);
+
+    // Process returned data
+    echo 'Non-fungible token successfully transferred' . PHP_EOL;
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+#### Doing transfer asynchronously
+
+```php
+try {
+    $data = $ctnApiClient->transferNonFungibleToken($tokenId, [
+        'id' => $otherDeviceId,
+        'isProdUniqueId' => false
+    ], true);
+
+    // Start pooling for asynchronous processing progress
+    $tokenTransferId = $data->tokenTransferId;
+    $done = false;
+    wait(1);
+
+    do {
+        $data = $ctnApiClient->retrieveNonFungibleTokenTransferProgress($tokenId, $tokenTransferId);
+
+        // Process returned data
+        echo 'Current data manipulation: ', print_r($data->progress->dataManipulation, true);
+            
+        if ($data->progress->done) {
+            if ($data->progress->success) {
+                // Display result
+                echo 'Non-fungible token successfully transferred' . PHP_EOL;
+            } else {
+                // Process error
+                echo 'Asynchronous processing error: [' . $data->progress->error->code . '] - '
+                    . $data->progress->error->message . PHP_EOL;
+            }
+
+            $done = true;
+        } else {
+            // Asynchronous processing not done yet. Wait before continuing pooling
+            wait(3);
+        }
+    } while (!$done);
+} catch (\Catenis\Exception\CatenisException $ex) {
+    // Process exception
+}
+```
+
+
+
 ### Retrieving information about a given asset
 
 ```php
@@ -752,8 +1343,21 @@ try {
     // Process returned data
     foreach ($data->issuanceEvents as $idx => $issuanceEvent) {
         echo 'Issuance event #', ($idx + 1) . ':' . PHP_EOL;
-        echo '  - issued amount: ' . $issuanceEvent->amount . PHP_EOL;
-        echo '  - device to which issued amount had been assigned: ' . print_r($issuanceEvent->holdingDevice, true);
+
+        if (!isset($issuanceEvent->nfTokenIds)) {
+            echo '  - issued amount: ' . $issuanceEvent->amount . PHP_EOL;
+        }
+        else {
+            echo '  - IDs of issued non-fungible tokens:' . print_r($issuanceEvent->nfTokenIds, true);
+        }
+
+        if (!isset($issuanceEvent->holdingDevices)) {
+            echo '  - device to which issued amount has been assigned: ' . print_r($issuanceEvent->holdingDevice, true);
+        }
+        else {
+            echo '  - devices to which issued non-fungible tokens have been assigned:', print_r($issuanceEvent->holdingDevices, true);
+        }
+
         echo '  - date of issuance: ' . $issuanceEvent->date . PHP_EOL;
     }
 
