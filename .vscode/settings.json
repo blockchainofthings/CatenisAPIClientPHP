@@ -1,0 +1,19 @@
+{
+    "phpcs.standard": "PSR2",
+    "spellright.language": [
+        "en"
+    ],
+    "spellright.documentTypes": [
+        "markdown",
+        "latex",
+        "php",
+        "plaintext"
+    ],
+    "spellright.ignoreFiles": [
+        "**/.gitignore",
+        "**/.spellignore",
+        "tests/TestAPIClient.php"
+    ],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 120
+}
