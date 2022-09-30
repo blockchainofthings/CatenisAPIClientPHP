@@ -1497,7 +1497,7 @@ class ApiClient extends ApiPackage
      *                                   should be responsible to periodically run the task queue by his/her own. This
      *                                   option is only processed when an event loop is provided
      *      'pumpInterval' => [int]   - (optional, default: 10) Time, in milliseconds, specifying the interval for
-     *                                   periodically runing the task queue. This option is only processed when an
+     *                                   periodically running the task queue. This option is only processed when an
      *                                   event loop is provided and the 'pumpTaskQueue' option is set to true
      * @throws Exception
      */
