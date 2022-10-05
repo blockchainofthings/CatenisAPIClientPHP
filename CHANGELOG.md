@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.1] - 2022-10-05
+
+### Fixes
+- Updated third party packages to mitigate potential security vulnerabilities.
+
 ## [6.0.0] - 2022-09-30
 
 ### Breaking changes
